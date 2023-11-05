@@ -723,13 +723,14 @@ public class FactorsController {
         for (int qf=0; qf < forecast.size(); ++qf){
             String factorId = forecast.get(qf).getId();
             List <DTOMetricEvaluation> qfMetricsPredictions = forecast.get(qf).getMetrics();
-            int j=0;
-            for(int i=0; i<qfMetricsPredictions.size(); i+=period, ++j){
-                while (qfMetricsPredictions.get(i).getValue()==null) {
+            int j = 0;
+            for(int i = 0; i < qfMetricsPredictions.size(); i += period, ++j){
+                while (i < qfMetricsPredictions.size() && qfMetricsPredictions.get(i).getValue() == null) {
                     ++i; ++j;
                 }
-                if(i + period >=qfMetricsPredictions.size()) break;
-                List<DTOMetricEvaluation> forecastedValues = new ArrayList<>(qfMetricsPredictions.subList(i, i + period));
+                if(i >= qfMetricsPredictions.size()) break;
+                int subListEnd = Math.min(i + period, forecast.size());
+                List<DTOMetricEvaluation> forecastedValues = new ArrayList<>(qfMetricsPredictions.subList(i, subListEnd));
                 String metricId = forecastedValues.get(0).getId();
                 DTOMetricEvaluation currentMetricEval = currentMetricEvals.get(factorId+metricId);
                 alertsController.checkAlertsForMetricsPrediction(currentMetricEval, forecastedValues, projectExternalId, technique);

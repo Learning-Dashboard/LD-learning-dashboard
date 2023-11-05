@@ -145,7 +145,7 @@ public class AlertRepositoryTest {
         LocalDate todayDate= LocalDate.now();
         LocalDateTime todayStart = todayDate.atStartOfDay();
         Date startDate= Date.from(todayStart.atZone(ZoneId.systemDefault()).toInstant());
-        Thread.sleep(1000L);
+        Thread.sleep(10);
         Date now = new Date();
 
         // When

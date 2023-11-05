@@ -289,27 +289,27 @@ public class StrategicIndicatorsController {
     }
 
     public List<DTOStrategicIndicatorEvaluation> getStrategicIndicatorsPrediction (List<DTOStrategicIndicatorEvaluation> si, String technique, String freq, String horizon, String projectExternalId) throws IOException, ElasticsearchStatusException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
-        List<DTOStrategicIndicatorEvaluation> forecast = qmaForecast.ForecastSI(si,technique, freq, horizon, projectExternalId);
-        int period=Integer.parseInt(horizon);
-        int j=0;
-        for(int i=0; i<forecast.size(); i+=period, ++j){
-            while (forecast.get(i).getValue().getFirst()==null){
-                ++i;
-                ++j;
+        List<DTOStrategicIndicatorEvaluation> forecast = qmaForecast.ForecastSI(si, technique, freq, horizon, projectExternalId);
+        int period = Integer.parseInt(horizon);
+        int j = 0;
+        for (int i = 0; i < forecast.size(); i += period, ++j) {
+            while (i < forecast.size() && forecast.get(i).getValue() == null) {
+                ++i; ++j;
             }
-            if (i + period >= forecast.size()) break;
-            List<DTOStrategicIndicatorEvaluation> forecastedValues = new ArrayList<>(forecast.subList(i, i + period));
+            if (i >= forecast.size()) break;
+            int subListEnd = Math.min(i + period, forecast.size());
+            List<DTOStrategicIndicatorEvaluation> forecastedValues = new ArrayList<>(forecast.subList(i, subListEnd));
             List<Float> predictedValues = new ArrayList<>();
             List<Date> predictionDates = new ArrayList<>();
-            for (int f=0 ;f<forecastedValues.size();++f){
-                predictedValues.add(forecastedValues.get(f).getValue().getFirst());
-                LocalDate predictedDate = forecastedValues.get(f).getDate();
+            for (DTOStrategicIndicatorEvaluation forecastedValue : forecastedValues) {
+                predictedValues.add(forecastedValue.getValue().getFirst());
+                LocalDate predictedDate = forecastedValue.getDate();
                 Date date;
-                if (predictedDate==null) date = null;
+                if (predictedDate == null) date = null;
                 else date = java.sql.Date.valueOf(predictedDate);
                 predictionDates.add(date);
             }
-            alertsController.checkAlertsForIndicatorsPrediction(si.get(j).getValue().getFirst(),si.get(j).getId(), predictedValues, predictionDates, projectExternalId, technique);
+            alertsController.checkAlertsForIndicatorsPrediction(si.get(j).getValue().getFirst(), si.get(j).getId(), predictedValues, predictionDates, projectExternalId, technique);
         }
         return forecast;
     }
@@ -327,27 +327,24 @@ public class StrategicIndicatorsController {
 
         //check for alerts
         int period=Integer.parseInt(horizon);
-        for (int si = 0; si<forecast.size();++si){
+        for (int si = 0; si < forecast.size(); ++si){
             String siId = forecast.get(si).getId();
             List <DTOFactorEvaluation> siFactorsPredictions = forecast.get(si).getFactors();
-            int j=0;
-            //iterate over the si predictions. If the prediction is correct, 'period' consecutive predictions will belong to the same si factor.
-            for(int i=0; i < siFactorsPredictions.size(); i+=period, ++j){
-                //if the prediction has an error, jump to the next
-                while (siFactorsPredictions.get(i).getValue().getFirst()==null){
-                    ++i;
-                    ++j;
+            int j = 0;
+            for(int i = 0; i < siFactorsPredictions.size(); i += period, ++j){
+                while (i < siFactorsPredictions.size() && siFactorsPredictions.get(i).getValue() == null){
+                    ++i; ++j;
                 }
-                if (i  + period >=  siFactorsPredictions.size()) break;
-
-                List<DTOFactorEvaluation> forecastedValues = new ArrayList<>(siFactorsPredictions.subList(i, i + period));
+                if (i >= siFactorsPredictions.size()) break;
+                int subListEnd = Math.min(i + period, siFactorsPredictions.size());
+                List<DTOFactorEvaluation> forecastedValues = new ArrayList<>(siFactorsPredictions.subList(i, subListEnd));
                 List<Float> predictedValues = new ArrayList<>();
                 List<Date> predictionDates = new ArrayList<>();
-                for (int f=0; f < forecastedValues.size(); ++f){
-                    predictedValues.add(forecastedValues.get(f).getValue().getFirst());
-                    LocalDate predictedDate = forecastedValues.get(f).getDate();
+                for (DTOFactorEvaluation forecastedValue : forecastedValues) {
+                    predictedValues.add(forecastedValue.getValue().getFirst());
+                    LocalDate predictedDate = forecastedValue.getDate();
                     Date date;
-                    if (predictedDate==null) date = null;
+                    if (predictedDate == null) date = null;
                     else date = java.sql.Date.valueOf(predictedDate);
                     predictionDates.add(date);
                 }
