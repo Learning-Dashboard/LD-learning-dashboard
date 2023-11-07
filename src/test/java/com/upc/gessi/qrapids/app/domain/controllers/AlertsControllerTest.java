@@ -37,8 +37,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class AlertsControllerTest
-{
+public class AlertsControllerTest {
     @InjectMocks
     private AlertsController alertsController;
     @Mock
@@ -218,6 +217,88 @@ public class AlertsControllerTest
         assertEquals(AlertType.TRESPASSED_THRESHOLD, alertSaved.getType());
         assertEquals(value, alertSaved.getValue(), 0f);
         assertEquals(metric.getThreshold(), alertSaved.getThreshold(), 0f);
+        assertEquals(AlertStatus.NEW, alertSaved.getStatus());
+        assertEquals(project, alertSaved.getProject());
+    }
+
+    @Test
+    public void shouldNotCreateMetricAlertBecauseTodayExactAlertHasBeenCreated() throws IOException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
+        // Given
+        Project project = domainObjectsBuilder.buildProject();
+        Long projectId = project.getId();
+
+        DTOMetricEvaluation metricEval = domainObjectsBuilder.buildDTOMetric();
+        float value = 0.33f;
+        Metric metric = domainObjectsBuilder.buildMetric(project);
+        metric.setThreshold(null); //we want it to not have a threshold for this test
+        metric.setExternalId(metricEval.getId());
+        when(metricRepository.findByExternalIdAndProjectId(metricEval.getId(), projectId)).thenReturn(metric);
+
+        List<MetricCategory> metricCategories = domainObjectsBuilder.buildMetricCategoryList();
+        when(metricCategoryRepository.findAllByName(metric.getCategoryName())).thenReturn(metricCategories);
+
+        //creating a previous evaluation that will have a higher value, so it will be in a different level and raise an alert
+        DTOMetricEvaluation previousEval = domainObjectsBuilder.buildDTOMetric();
+        List<DTOMetricEvaluation> previousEvals = Arrays.asList(previousEval);
+        when(qmaMetrics.SingleHistoricalData(eq(metric.getExternalId()), any(), any(), eq(project.getExternalId()), any())).thenReturn(previousEvals);
+        Alert alert = domainObjectsBuilder.buildAlert(project);
+        alert.setValue(value);
+        alert.setThreshold(null);
+        when(alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateGreaterThanEqualAndDateLessThan(
+                eq(projectId), eq(metric.getExternalId()), eq("metric"),
+                eq(AlertType.CATEGORY_DOWNGRADE), any(Date.class), any(Date.class))).thenReturn(alert);
+
+        // When
+        alertsController.shouldCreateMetricAlert(metricEval, value, projectId);
+
+        // Then
+        verify(metricRepository, times(1)).findByExternalIdAndProjectId(metricEval.getId(), projectId);
+        verify(metricCategoryRepository, times(1)).findAllByName(metric.getCategoryName());
+        ArgumentCaptor<Alert> alertArgumentCaptor = ArgumentCaptor.forClass(Alert.class);
+        verify(alertRepository, times(0)).save(alertArgumentCaptor.capture());
+    }
+
+    @Test
+    public void shouldCreateMetricAlertBecauseTodayExactAlertHasBeenCreatedButDifferent() throws IOException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
+        // Given
+        Project project = domainObjectsBuilder.buildProject();
+        Long projectId = project.getId();
+
+        DTOMetricEvaluation metricEval = domainObjectsBuilder.buildDTOMetric();
+        float value = 0.33f;
+        Metric metric = domainObjectsBuilder.buildMetric(project);
+        metric.setThreshold(null); //we want it to not have a threshold for this test
+        metric.setExternalId(metricEval.getId());
+        when(metricRepository.findByExternalIdAndProjectId(metricEval.getId(), projectId)).thenReturn(metric);
+
+        List<MetricCategory> metricCategories = domainObjectsBuilder.buildMetricCategoryList();
+        when(metricCategoryRepository.findAllByName(metric.getCategoryName())).thenReturn(metricCategories);
+
+        //creating a previous evaluation that will have a higher value, so it will be in a different level and raise an alert
+        DTOMetricEvaluation previousEval = domainObjectsBuilder.buildDTOMetric();
+        List<DTOMetricEvaluation> previousEvals = Arrays.asList(previousEval);
+        when(qmaMetrics.SingleHistoricalData(eq(metric.getExternalId()), any(), any(), eq(project.getExternalId()), any())).thenReturn(previousEvals);
+        Alert alert = domainObjectsBuilder.buildAlert(project);
+        alert.setValue(0.5f);
+        alert.setThreshold(null);
+        when(alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateGreaterThanEqualAndDateLessThan(
+                eq(projectId), eq(metric.getExternalId()), eq("metric"),
+                eq(AlertType.CATEGORY_DOWNGRADE), any(Date.class), any(Date.class))).thenReturn(alert);
+
+        // When
+        alertsController.shouldCreateMetricAlert(metricEval, value, projectId);
+
+        // Then
+        verify(metricRepository, times(2)).findByExternalIdAndProjectId(metricEval.getId(), projectId);
+        verify(metricCategoryRepository, times(1)).findAllByName(metric.getCategoryName());
+        ArgumentCaptor<Alert> alertArgumentCaptor = ArgumentCaptor.forClass(Alert.class);
+        verify(alertRepository, times(1)).save(alertArgumentCaptor.capture());
+        //Checking that a category downgrade alert has been created
+        Alert alertSaved = alertArgumentCaptor.getValue();
+        assertEquals(metric.getExternalId(), alertSaved.getAffectedId());
+        assertEquals("metric", alertSaved.getAffectedType());
+        assertEquals(AlertType.CATEGORY_DOWNGRADE, alertSaved.getType());
+        assertEquals(alertSaved.getValue(), value, 0.0f);
         assertEquals(AlertStatus.NEW, alertSaved.getStatus());
         assertEquals(project, alertSaved.getProject());
     }
@@ -469,7 +550,7 @@ public class AlertsControllerTest
         Date today = new Date();
         Date alertDate = new Date(today.getTime()-86400000*8);
         previousAlert.setDate(alertDate);
-        when(alertRepository.findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(projectId,currentMetric.getExternalId(),AlertType.TRESPASSED_THRESHOLD)).thenReturn(previousAlert);
+        when(alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(projectId,currentMetric.getExternalId(),"metric",AlertType.TRESPASSED_THRESHOLD)).thenReturn(previousAlert);
 
         //create previous evaluations
         DTOMetricEvaluation previousEval = domainObjectsBuilder.buildDTOMetric();
@@ -485,7 +566,7 @@ public class AlertsControllerTest
         alertsController.shouldCreateMetricAlert(currentMetricEval, value, projectId);
 
         // Then
-        verify(alertRepository, times (1)).findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(projectId,currentMetric.getExternalId(),AlertType.TRESPASSED_THRESHOLD);
+        verify(alertRepository, times (1)).findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(projectId,currentMetric.getExternalId(),"metric",AlertType.TRESPASSED_THRESHOLD);
         verify(metricRepository, times(2)).findByExternalIdAndProjectId(currentMetricEval.getId(), projectId);
         verify(metricCategoryRepository, times(1)).findAllByName(currentMetric.getCategoryName());
         ArgumentCaptor<Alert> alertArgumentCaptor = ArgumentCaptor.forClass(Alert.class);
@@ -520,7 +601,7 @@ public class AlertsControllerTest
         Date today = new Date();
         Date alertDate = new Date(today.getTime()-86400000);
         previousAlert.setDate(alertDate);
-        when(alertRepository.findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(projectId,currentMetric.getExternalId(),AlertType.TRESPASSED_THRESHOLD)).thenReturn(previousAlert);
+        when(alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(projectId,currentMetric.getExternalId(),"metric",AlertType.TRESPASSED_THRESHOLD)).thenReturn(previousAlert);
 
         //create previous evaluations
         DTOMetricEvaluation previousEval = domainObjectsBuilder.buildDTOMetric();
@@ -536,7 +617,7 @@ public class AlertsControllerTest
         alertsController.shouldCreateMetricAlert(currentMetricEval, value, projectId);
 
         // Then
-        verify(alertRepository, times (1)).findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(projectId,currentMetric.getExternalId(),AlertType.TRESPASSED_THRESHOLD);
+        verify(alertRepository, times (1)).findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(projectId,currentMetric.getExternalId(),"metric",AlertType.TRESPASSED_THRESHOLD);
         verify(metricRepository, times(1)).findByExternalIdAndProjectId(currentMetricEval.getId(), projectId);
         verify(metricCategoryRepository, times(1)).findAllByName(currentMetric.getCategoryName());
     }
@@ -560,7 +641,7 @@ public class AlertsControllerTest
         Date today = new Date();
         Date alertDate = new Date(today.getTime()-86400000);
         previousAlert.setDate(alertDate);
-        when(alertRepository.findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(projectId,currentMetric.getExternalId(),AlertType.TRESPASSED_THRESHOLD)).thenReturn(previousAlert);
+        when(alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(projectId,currentMetric.getExternalId(),"metric",AlertType.TRESPASSED_THRESHOLD)).thenReturn(previousAlert);
 
         //create previous evaluations
         DTOMetricEvaluation previousEval = domainObjectsBuilder.buildDTOMetric();
@@ -576,7 +657,7 @@ public class AlertsControllerTest
         alertsController.shouldCreateMetricAlert(currentMetricEval, value, projectId);
 
         // Then
-        verify(alertRepository, times (1)).findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(projectId,currentMetric.getExternalId(),AlertType.TRESPASSED_THRESHOLD);
+        verify(alertRepository, times (1)).findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(projectId,currentMetric.getExternalId(),"metric",AlertType.TRESPASSED_THRESHOLD);
         verify(metricRepository, times(2)).findByExternalIdAndProjectId(currentMetricEval.getId(), projectId);
         verify(metricCategoryRepository, times(1)).findAllByName(currentMetric.getCategoryName());
         ArgumentCaptor<Alert> alertArgumentCaptor = ArgumentCaptor.forClass(Alert.class);
@@ -640,18 +721,18 @@ public class AlertsControllerTest
         upgradeAlert.setDate(upgradeAlertDate);
         downgradeAlert.setDate(downgradeAlertDate);
 
-        when(alertRepository.findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(metric.getProject().getId(),
-                metric.getExternalId(), AlertType.CATEGORY_UPGRADE)).thenReturn(upgradeAlert);
-        when(alertRepository.findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(metric.getProject().getId(),
-                metric.getExternalId(), AlertType.CATEGORY_DOWNGRADE)).thenReturn(downgradeAlert);
+        when(alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(metric.getProject().getId(),
+                metric.getExternalId(), "metric", AlertType.CATEGORY_UPGRADE)).thenReturn(upgradeAlert);
+        when(alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(metric.getProject().getId(),
+                metric.getExternalId(), "metric", AlertType.CATEGORY_DOWNGRADE)).thenReturn(downgradeAlert);
 
 
         // When
         alertsController.shouldCreateMetricAlert(metricEval, metricEval.getValue(), projectId);
 
         // Then
-        verify(alertRepository, times (1)).findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(projectId,metric.getExternalId(),AlertType.CATEGORY_DOWNGRADE);
-        verify(alertRepository, times (1)).findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(projectId,metric.getExternalId(),AlertType.CATEGORY_UPGRADE);
+        verify(alertRepository, times (1)).findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(projectId,metric.getExternalId(),"metric",AlertType.CATEGORY_DOWNGRADE);
+        verify(alertRepository, times (1)).findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(projectId,metric.getExternalId(),"metric",AlertType.CATEGORY_UPGRADE);
         verify(metricRepository, times(2)).findByExternalIdAndProjectId(metricEval.getId(), projectId);
         verify(metricCategoryRepository, times(1)).findAllByName(metric.getCategoryName());
         ArgumentCaptor<Alert> alertArgumentCaptor = ArgumentCaptor.forClass(Alert.class);
@@ -680,7 +761,7 @@ public class AlertsControllerTest
     }
 
     @Test
-    public void shouldCreateMetricPredictionAlertWithCategoryDowngrade() throws IOException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
+    public void shouldCreateMetricPredictionAlertWithCategoryDowngrade() throws MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
         // Given
         Project project = domainObjectsBuilder.buildProject();
         Long projectId = project.getId();
@@ -722,7 +803,7 @@ public class AlertsControllerTest
     }
 
     @Test
-    public void shouldCreateMetricPredictionAlertWithCategoryUpgrade() throws IOException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
+    public void shouldCreateMetricPredictionAlertWithCategoryUpgrade() throws MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
         // Given
         Project project = domainObjectsBuilder.buildProject();
         Long projectId = project.getId();
@@ -763,7 +844,7 @@ public class AlertsControllerTest
     }
 
     @Test
-    public void shouldCreateMetricPredictionAlertWithThresholdTrespassed() throws IOException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
+    public void shouldCreateMetricPredictionAlertWithThresholdTrespassed() throws MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
         // Given
         Project project = domainObjectsBuilder.buildProject();
         Long projectId = project.getId();
@@ -810,7 +891,7 @@ public class AlertsControllerTest
     }
 
     @Test
-    public void shouldCreateFactorPredictionAlertWithCategoryDowngrade() throws IOException, ProjectNotFoundException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
+    public void shouldCreateFactorPredictionAlertWithCategoryDowngrade() throws MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
         // Given
         Project project = domainObjectsBuilder.buildProject();
         Long projectId = project.getId();
@@ -859,7 +940,7 @@ public class AlertsControllerTest
     }
 
     @Test
-    public void shouldCreateFactorPredictionAlertWithCategoryUpgrade() throws IOException, ProjectNotFoundException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
+    public void shouldCreateFactorPredictionAlertWithCategoryUpgrade() throws MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
         // Given
         Project project = domainObjectsBuilder.buildProject();
         Long projectId = project.getId();
@@ -908,7 +989,7 @@ public class AlertsControllerTest
     }
 
     @Test
-    public void shouldCreateFactorPredictionAlertWithThresholdTrespassed() throws IOException, ProjectNotFoundException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
+    public void shouldCreateFactorPredictionAlertWithThresholdTrespassed() throws MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
         // Given
         Project project = domainObjectsBuilder.buildProject();
         Long projectId = project.getId();
@@ -954,7 +1035,7 @@ public class AlertsControllerTest
     }
 
     @Test
-    public void shouldCreateIndicatorPredictionAlertWithCategoryDowngrade() throws IOException, ProjectNotFoundException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
+    public void shouldCreateIndicatorPredictionAlertWithCategoryDowngrade() throws MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
         // Given
         Project project = domainObjectsBuilder.buildProject();
         Long projectId = project.getId();
@@ -1001,7 +1082,7 @@ public class AlertsControllerTest
     }
 
     @Test
-    public void shouldCreateIndicatorPredictionAlertWithCategoryUpgrade() throws IOException, ProjectNotFoundException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
+    public void shouldCreateIndicatorPredictionAlertWithCategoryUpgrade() throws MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
         // Given
         Project project = domainObjectsBuilder.buildProject();
         Long projectId = project.getId();
@@ -1048,7 +1129,7 @@ public class AlertsControllerTest
     }
 
     @Test
-    public void shouldCreateIndicatorPredictionAlertWithThresholdTrespassed() throws IOException, ProjectNotFoundException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
+    public void shouldCreateIndicatorPredictionAlertWithThresholdTrespassed() throws MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
         // Given
         Project project = domainObjectsBuilder.buildProject();
         Long projectId = project.getId();
@@ -1092,7 +1173,7 @@ public class AlertsControllerTest
     }
 
     @Test
-    public void shouldNotCreateMetricPredictionAlertBecauseTodayExactAlertHasBeenCreated() throws IOException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
+    public void shouldNotCreateMetricPredictionAlertBecauseTodayExactAlertHasBeenCreated() throws MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
         // Given
         Project project = domainObjectsBuilder.buildProject();
         Long projectId = project.getId();
@@ -1129,7 +1210,7 @@ public class AlertsControllerTest
         LocalDate todayDate= LocalDate.now();
         LocalDateTime todayStart = todayDate.atStartOfDay();
         Date startDate = Date.from(todayStart.atZone(ZoneId.systemDefault()).toInstant());
-        when(alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndValueAndTypeAndPredictionTechniqueAndPredictionDateAndDateGreaterThanEqualAndDateLessThanAndThreshold(eq(projectId), eq(alert.getAffectedId()), eq("metric"), eq(alert.getValue()), eq(alert.getType()), eq("PROPHET"), eq(alert.getPredictionDate()), eq(startDate), any(), eq(alert.getThreshold()))).thenReturn(alert);
+        when(alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndPredictionTechniqueAndPredictionDateAndDateGreaterThanEqualAndDateLessThan(eq(projectId), eq(alert.getAffectedId()), eq("metric"), eq(alert.getType()), eq("PROPHET"), eq(alert.getPredictionDate()), eq(startDate), any())).thenReturn(alert);
 
         // When
         alertsController.checkAlertsForMetricsPrediction(metricEval, forecast, project.getExternalId(), "PROPHET");
@@ -1139,6 +1220,66 @@ public class AlertsControllerTest
         verify(metricCategoryRepository, times(1)).findAllByName(metric.getCategoryName());
         ArgumentCaptor<Alert> alertArgumentCaptor = ArgumentCaptor.forClass(Alert.class);
         verify(alertRepository, times(0)).save(alertArgumentCaptor.capture());
+    }
+
+    @Test
+    public void shouldCreateMetricPredictionAlertBecauseTodayExactAlertHasBeenCreatedButItIsDifferent() throws MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
+        // Given
+        Project project = domainObjectsBuilder.buildProject();
+        Long projectId = project.getId();
+        when(projectRepository.findByExternalId(project.getExternalId())).thenReturn(project);
+
+        //current eval
+        DTOMetricEvaluation metricEval = domainObjectsBuilder.buildDTOMetric();
+        Metric metric = domainObjectsBuilder.buildMetric(project);
+        metric.setThreshold(null); //we want it to not have a threshold for this test
+        metric.setExternalId(metricEval.getId());
+        when(metricRepository.findByExternalIdAndProjectId(metricEval.getId(), projectId)).thenReturn(metric);
+        List<MetricCategory> metricCategories = domainObjectsBuilder.buildMetricCategoryList();
+        when(metricCategoryRepository.findAllByName(metric.getCategoryName())).thenReturn(metricCategories);
+
+        //predicted evals
+        DTOMetricEvaluation metricPredictedEval = domainObjectsBuilder.buildDTOMetric();
+        metricPredictedEval.setValue(0.5f);
+        DTOMetricEvaluation metricPredictedEvalTwo = domainObjectsBuilder.buildDTOMetric();
+        metricPredictedEval.setValue(0.21f);
+        List<DTOMetricEvaluation> forecast = Arrays.asList(metricPredictedEval, metricPredictedEvalTwo);
+
+        //create the "alreadyCreated" alert for this prediction
+        Alert alert = domainObjectsBuilder.buildAlert(project);
+        alert.setDate(new Date());
+        alert.setPredictionDate(java.sql.Date.valueOf(metricPredictedEval.getDate()));
+        alert.setValue(metricPredictedEval.getValue());
+        alert.setPredictionTechnique("PROPHET");
+        alert.setAffectedType("metric");
+        alert.setAffectedId(metricEval.getId());
+        alert.setThreshold(metric.getThreshold());
+        alert.setProject(project);
+        alert.setType(AlertType.PREDICTED_CATEGORY_DOWNGRADE);
+        alert.setStatus(AlertStatus.NEW);
+        LocalDate todayDate= LocalDate.now();
+        LocalDateTime todayStart = todayDate.atStartOfDay();
+        Date startDate = Date.from(todayStart.atZone(ZoneId.systemDefault()).toInstant());
+        when(alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndPredictionTechniqueAndPredictionDateAndDateGreaterThanEqualAndDateLessThan(eq(projectId), eq(alert.getAffectedId()), eq("metric"), eq(alert.getType()), eq("PROPHET"), eq(alert.getPredictionDate()), eq(startDate), any())).thenReturn(alert);
+
+        // When
+        metricPredictedEval.setValue(0.55f);
+        alertsController.checkAlertsForMetricsPrediction(metricEval, forecast, project.getExternalId(), "PROPHET");
+
+        // Then
+        verify(metricRepository, times(2)).findByExternalIdAndProjectId(metricEval.getId(), projectId);
+        verify(metricCategoryRepository, times(1)).findAllByName(metric.getCategoryName());
+        ArgumentCaptor<Alert> alertArgumentCaptor = ArgumentCaptor.forClass(Alert.class);
+        verify(alertRepository, times(1)).save(alertArgumentCaptor.capture());
+        Alert alertSaved = alertArgumentCaptor.getValue();
+        assertEquals(metric.getExternalId(), alertSaved.getAffectedId());
+        assertEquals("metric", alertSaved.getAffectedType());
+        assertEquals(AlertType.PREDICTED_CATEGORY_DOWNGRADE, alertSaved.getType());
+        assertEquals(metricPredictedEval.getValue(), alertSaved.getValue(), 0f);
+        assertEquals(java.sql.Date.valueOf(metricPredictedEval.getDate()), alertSaved.getPredictionDate());
+        assertEquals("PROPHET", alertSaved.getPredictionTechnique());
+        assertEquals(AlertStatus.NEW, alertSaved.getStatus());
+        assertEquals(project, alertSaved.getProject());
     }
 
     @Test
@@ -1230,8 +1371,9 @@ public class AlertsControllerTest
     public void getAlertByIdNotExisting () throws AlertNotFoundException {
         // Given
         long alertId = 1;
+
         // Throw
-        Alert alertObtained = alertsController.getAlertById(alertId);
+        alertsController.getAlertById(alertId);
     }
 
 }

@@ -8,24 +8,25 @@ import com.upc.gessi.qrapids.app.domain.models.*;
 import com.upc.gessi.qrapids.app.domain.repositories.Alert.AlertRepository;
 import com.upc.gessi.qrapids.app.domain.repositories.Metric.MetricRepository;
 import com.upc.gessi.qrapids.app.domain.repositories.MetricCategory.MetricCategoryRepository;
-import com.upc.gessi.qrapids.app.domain.repositories.Profile.ProfileRepository;
 import com.upc.gessi.qrapids.app.domain.repositories.Project.ProjectRepository;
 import com.upc.gessi.qrapids.app.domain.repositories.QFCategory.QFCategoryRepository;
 import com.upc.gessi.qrapids.app.domain.repositories.QualityFactor.QualityFactorRepository;
 import com.upc.gessi.qrapids.app.domain.repositories.SICategory.SICategoryRepository;
 import com.upc.gessi.qrapids.app.domain.repositories.StrategicIndicator.StrategicIndicatorQualityFactorsRepository;
 import com.upc.gessi.qrapids.app.domain.repositories.StrategicIndicator.StrategicIndicatorRepository;
-import com.upc.gessi.qrapids.app.presentation.rest.dto.*;
+import com.upc.gessi.qrapids.app.presentation.rest.dto.DTODetailedFactorEvaluation;
+import com.upc.gessi.qrapids.app.presentation.rest.dto.DTODetailedStrategicIndicatorEvaluation;
+import com.upc.gessi.qrapids.app.presentation.rest.dto.DTOMetricEvaluation;
 import com.upc.gessi.qrapids.app.presentation.rest.services.StrategicIndicators;
-import com.upc.gessi.qrapids.app.presentation.web.mapping.ProfileController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-
 import java.io.IOException;
-import java.time.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -70,7 +71,7 @@ public class AlertsController {
             else throw new StrategicIndicatorNotFoundException();
         }
         else {
-            Alert newAlert = new Alert( value,  threshold,  type,  project,  affectedId, affectedType, predictionDate, predictionTechnique);
+            Alert newAlert = new Alert(value,  threshold,  type,  project,  affectedId, affectedType, predictionDate, predictionTechnique);
             saveAlert(newAlert);
         }
     }
@@ -95,16 +96,23 @@ public class AlertsController {
     }
 
     private void checkMetricThresholdTrespassedAlert(Metric metric, float value) throws IOException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
-        if (metric.getThreshold()!= null && value < metric.getThreshold()){
-            Alert previousThresholdAlert= alertRepository.findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(metric.getProject().getId(),
-                    metric.getExternalId(), AlertType.TRESPASSED_THRESHOLD);
-            Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(metric.getProject().getId(),
-                    metric.getExternalId(), AlertType.ALERT_NOT_TREATED);
+        Date todayStartDate = getTodayStartOfDayInstant();
+        Date now = new Date();
 
+        Alert alreadyCreated_NT = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateGreaterThanEqualAndDateLessThan(
+                metric.getProject().getId(), metric.getExternalId(), "metric", AlertType.ALERT_NOT_TREATED, todayStartDate, now);
+        Alert alreadyCreated_TT = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateGreaterThanEqualAndDateLessThan(
+                metric.getProject().getId(), metric.getExternalId(), "metric", AlertType.TRESPASSED_THRESHOLD, todayStartDate, now);
+
+        if (metric.getThreshold() != null && value < metric.getThreshold()){
+            Alert previousThresholdAlert= alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(metric.getProject().getId(),
+                    metric.getExternalId(), "metric", AlertType.TRESPASSED_THRESHOLD);
+            Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(metric.getProject().getId(),
+                    metric.getExternalId(), "metric", AlertType.ALERT_NOT_TREATED);
 
             Alert lastAlert = obtainMostRecentAlert(previousThresholdAlert, previousNotTreatedAlert);
 
-            if (lastAlert!=null){
+            if (lastAlert != null){
                 Date lastAlertDate = lastAlert.getDate();
 
                 LocalDate fromDate = lastAlertDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
@@ -122,17 +130,44 @@ public class AlertsController {
                 Date today = new Date();
                 long diff = today.getTime() - lastAlertDate.getTime();
                 boolean isAlertNotTreated = isATrespassedThresholdNotTreated(metric.getThreshold(), metricEvaluationsValues);
-                if (isAlertNotTreated && TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS) > 7) createAlert(value, metric.getThreshold(),
-                        AlertType.ALERT_NOT_TREATED, metric.getProject(), metric.getExternalId(), "metric", null, null);
-                else if (!isAlertNotTreated) createAlert(value, metric.getThreshold(),
-                        AlertType.TRESPASSED_THRESHOLD, metric.getProject(), metric.getExternalId(), "metric", null, null);
+                if (isAlertNotTreated && TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS) > 7) {
+                    if (alreadyCreated_TT != null) alertRepository.deleteById(alreadyCreated_TT.getId());
+                    if (alreadyCreated_NT == null) createAlert(value, metric.getThreshold(), AlertType.ALERT_NOT_TREATED, metric.getProject(),
+                            metric.getExternalId(), "metric", null, null);
+                    else if (alreadyCreated_NT.getValue() != value || !Objects.equals(alreadyCreated_NT.getThreshold(), metric.getThreshold())) {
+                        alertRepository.deleteById(alreadyCreated_NT.getId());
+                        createAlert(value, metric.getThreshold(), AlertType.ALERT_NOT_TREATED, metric.getProject(),
+                                metric.getExternalId(), "metric", null, null);
+                    }
+                }
+                else if (!isAlertNotTreated) {
+                    if (alreadyCreated_NT != null) alertRepository.deleteById(alreadyCreated_NT.getId());
+                    if (alreadyCreated_TT == null) createAlert(value, metric.getThreshold(),
+                            AlertType.TRESPASSED_THRESHOLD, metric.getProject(), metric.getExternalId(), "metric", null, null);
+                    else if (alreadyCreated_TT.getValue() != value || !Objects.equals(alreadyCreated_TT.getThreshold(), metric.getThreshold())) {
+                        alertRepository.deleteById(alreadyCreated_TT.getId());
+                        createAlert(value, metric.getThreshold(),
+                                AlertType.TRESPASSED_THRESHOLD, metric.getProject(), metric.getExternalId(), "metric", null, null);
+                    }
+                }
             }
-            else createAlert(value, metric.getThreshold(),
-                    AlertType.TRESPASSED_THRESHOLD, metric.getProject(), metric.getExternalId(), "metric", null, null);
+            else {
+                if (alreadyCreated_TT == null) createAlert(value, metric.getThreshold(),
+                        AlertType.TRESPASSED_THRESHOLD, metric.getProject(), metric.getExternalId(), "metric", null, null);
+                else if (alreadyCreated_TT.getValue() != value || !Objects.equals(alreadyCreated_TT.getThreshold(), metric.getThreshold())) {
+                    alertRepository.deleteById(alreadyCreated_TT.getId());
+                    createAlert(value, metric.getThreshold(),
+                            AlertType.TRESPASSED_THRESHOLD, metric.getProject(), metric.getExternalId(), "metric", null, null);
+                }
+            }
+        }
+        else {
+            if (alreadyCreated_NT != null) alertRepository.deleteById(alreadyCreated_NT.getId());
+            if (alreadyCreated_TT != null) alertRepository.deleteById(alreadyCreated_TT.getId());
         }
     }
 
-    private void checkMetricColorChangedAlert(Metric metric, float value, List<Float> metricCategoryThresholds) throws IOException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
+    private void checkMetricColorChangedAlert(Metric metric, float value, List<Float> metricCategoryThresholds) throws MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
         LocalDate Date = LocalDate.now();
         LocalDate toDate = Date.minusDays(1);
         LocalDate fromDate = toDate.minusDays(30);
@@ -146,34 +181,75 @@ public class AlertsController {
             logger.error(e.getMessage(), e);
         }
 
+        Date todayStartDate = getTodayStartOfDayInstant();
+        Date now = new Date();
+
         if(!metricEvaluations.isEmpty()){
             DTOMetricEvaluation lastEvaluation = metricEvaluations.get(0);
             int previousCategoryLevel = findCategoryLevel(lastEvaluation.getValue(), metricCategoryThresholds);
             int currentCategoryLevel = findCategoryLevel(value, metricCategoryThresholds);
 
-            if (lastEvaluation.getValue() > value && previousCategoryLevel!=currentCategoryLevel ){
-                createAlert(value, metric.getThreshold(), AlertType.CATEGORY_DOWNGRADE, metric.getProject(),
+            Alert alreadyCreated_CU = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateGreaterThanEqualAndDateLessThan(
+                    metric.getProject().getId(), metric.getExternalId(), "metric", AlertType.CATEGORY_UPGRADE, todayStartDate, now);
+            Alert alreadyCreated_CD = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateGreaterThanEqualAndDateLessThan(
+                    metric.getProject().getId(), metric.getExternalId(), "metric", AlertType.CATEGORY_DOWNGRADE, todayStartDate, now);
+            Alert alreadyCreated_NT = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateGreaterThanEqualAndDateLessThan(
+                    metric.getProject().getId(), metric.getExternalId(), "metric", AlertType.ALERT_NOT_TREATED, todayStartDate, now);
+
+            if (lastEvaluation.getValue() > value && previousCategoryLevel != currentCategoryLevel) {
+
+                if (alreadyCreated_CU != null) alertRepository.deleteById(alreadyCreated_CU.getId());
+                if (alreadyCreated_NT != null) alertRepository.deleteById(alreadyCreated_NT.getId());
+
+                if (alreadyCreated_CD == null) createAlert(value, metric.getThreshold(), AlertType.CATEGORY_DOWNGRADE, metric.getProject(),
                         metric.getExternalId(), "metric", null, null);
-            }
-            else if (lastEvaluation.getValue() < value && previousCategoryLevel!=currentCategoryLevel){
-                createAlert(value, metric.getThreshold(), AlertType.CATEGORY_UPGRADE, metric.getProject(),
-                        metric.getExternalId(), "metric", null,null);
+                else if (alreadyCreated_CD.getValue() != value || !Objects.equals(alreadyCreated_CD.getThreshold(), metric.getThreshold())) {
+                    alertRepository.deleteById(alreadyCreated_CD.getId());
+                    createAlert(value, metric.getThreshold(), AlertType.CATEGORY_DOWNGRADE, metric.getProject(),
+                            metric.getExternalId(), "metric", null, null);
+
+                }
             }
 
-            else{
-                Alert previousDowngradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(metric.getProject().getId(),
-                    metric.getExternalId(), AlertType.CATEGORY_DOWNGRADE);
-                Alert previousUpgradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(metric.getProject().getId(),
-                        metric.getExternalId(), AlertType.CATEGORY_UPGRADE);
-                Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(metric.getProject().getId(),
-                        metric.getExternalId(), AlertType.ALERT_NOT_TREATED);
+            else if (lastEvaluation.getValue() < value && previousCategoryLevel != currentCategoryLevel) {
+
+                if (alreadyCreated_CD != null) alertRepository.deleteById(alreadyCreated_CD.getId());
+                if (alreadyCreated_NT != null) alertRepository.deleteById(alreadyCreated_NT.getId());
+
+                if (alreadyCreated_CU == null) createAlert(value, metric.getThreshold(), AlertType.CATEGORY_UPGRADE, metric.getProject(),
+                        metric.getExternalId(), "metric", null,null);
+                else if (alreadyCreated_CU.getValue() != value || !Objects.equals(alreadyCreated_CU.getThreshold(), metric.getThreshold())) {
+                    alertRepository.deleteById(alreadyCreated_CU.getId());
+                    createAlert(value, metric.getThreshold(), AlertType.CATEGORY_UPGRADE, metric.getProject(),
+                            metric.getExternalId(), "metric", null,null);
+                }
+            }
+
+            else {
+
+                if (alreadyCreated_CD != null) alertRepository.deleteById(alreadyCreated_CD.getId());
+                if (alreadyCreated_CU != null) alertRepository.deleteById(alreadyCreated_CU.getId());
+
+                Alert previousDowngradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(metric.getProject().getId(),
+                        metric.getExternalId(), "metric", AlertType.CATEGORY_DOWNGRADE);
+                Alert previousUpgradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(metric.getProject().getId(),
+                        metric.getExternalId(), "metric", AlertType.CATEGORY_UPGRADE);
+                Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(metric.getProject().getId(),
+                        metric.getExternalId(), "metric", AlertType.ALERT_NOT_TREATED);
                 Alert lastAlert = obtainMostRecentAlert(previousDowngradeAlert, previousUpgradeAlert, previousNotTreatedAlert);
 
-                if (lastAlert!=null && (lastAlert.getType() == AlertType.CATEGORY_DOWNGRADE || lastAlert.getType() == AlertType.ALERT_NOT_TREATED)){
+                if (lastAlert != null && (lastAlert.getType() == AlertType.CATEGORY_DOWNGRADE || lastAlert.getType() == AlertType.ALERT_NOT_TREATED)){
                     Date todayDate = new Date();
                     long diff = todayDate.getTime() - lastAlert.getDate().getTime();
-                    if (TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS) > 7) createAlert(value, metric.getThreshold(), AlertType.ALERT_NOT_TREATED, metric.getProject(),
-                            metric.getExternalId(), "metric", null, null);
+                    if (TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS) > 7) {
+                        if (alreadyCreated_NT == null) createAlert(value, metric.getThreshold(), AlertType.ALERT_NOT_TREATED, metric.getProject(),
+                                metric.getExternalId(), "metric", null, null);
+                        else if (alreadyCreated_NT.getValue() != value || !Objects.equals(alreadyCreated_NT.getThreshold(), metric.getThreshold())) {
+                            alertRepository.deleteById(alreadyCreated_NT.getId());
+                            createAlert(value, metric.getThreshold(), AlertType.ALERT_NOT_TREATED, metric.getProject(),
+                                    metric.getExternalId(), "metric", null, null);
+                        }
+                    }
                 }
             }
         }
@@ -208,44 +284,90 @@ public class AlertsController {
             logger.error(e.getMessage(), e);
         }
 
+        Date todayStartDate = getTodayStartOfDayInstant();
+        Date now = new Date();
+
         if (!factorEvaluations.isEmpty()) {
             DTODetailedFactorEvaluation lastEvaluation = factorEvaluations.get(0); //assuming most recents are first
 
             int previousCategoryLevel = findCategoryLevel(lastEvaluation.getValue().getFirst(), categoryThresholds);
             int currentCategoryLevel = findCategoryLevel(value, categoryThresholds);
 
+            Alert alreadyCreated_CU = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateGreaterThanEqualAndDateLessThan(
+                    factor.getProject().getId(), factor.getExternalId(), "factor", AlertType.CATEGORY_UPGRADE, todayStartDate, now);
+            Alert alreadyCreated_CD = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateGreaterThanEqualAndDateLessThan(
+                    factor.getProject().getId(), factor.getExternalId(), "factor", AlertType.CATEGORY_DOWNGRADE, todayStartDate, now);
+            Alert alreadyCreated_NT = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateGreaterThanEqualAndDateLessThan(
+                    factor.getProject().getId(), factor.getExternalId(), "factor", AlertType.ALERT_NOT_TREATED, todayStartDate, now);
+
             if (lastEvaluation.getValue().getFirst() > value && previousCategoryLevel != currentCategoryLevel) {
-                createAlert(value, factor.getThreshold(), AlertType.CATEGORY_DOWNGRADE, factor.getProject(),
+                if (alreadyCreated_CU != null) alertRepository.deleteById(alreadyCreated_CU.getId());
+                if (alreadyCreated_NT != null) alertRepository.deleteById(alreadyCreated_NT.getId());
+
+                if (alreadyCreated_CD == null) createAlert(value, factor.getThreshold(), AlertType.CATEGORY_DOWNGRADE, factor.getProject(),
                         factor.getExternalId(), "factor", null, null);
-            } else if (lastEvaluation.getValue().getFirst() < value && previousCategoryLevel != currentCategoryLevel) {
-                createAlert(value, factor.getThreshold(), AlertType.CATEGORY_UPGRADE, factor.getProject(),
-                        factor.getExternalId(), "factor", null, null);
-            } else {
-                Alert previousDowngradeAlert = alertRepository.findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(factor.getProject().getId(),
-                        factor.getExternalId(), AlertType.CATEGORY_DOWNGRADE);
-                Alert previousUpgradeAlert = alertRepository.findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(factor.getProject().getId(),
-                        factor.getExternalId(), AlertType.CATEGORY_UPGRADE);
-                Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(factor.getProject().getId(),
-                        factor.getExternalId(), AlertType.ALERT_NOT_TREATED);
+                else if (alreadyCreated_CD.getValue() != value || !Objects.equals(alreadyCreated_CD.getThreshold(), factor.getThreshold())) {
+                    alertRepository.deleteById(alreadyCreated_CD.getId());
+                    createAlert(value, factor.getThreshold(), AlertType.CATEGORY_DOWNGRADE, factor.getProject(),
+                            factor.getExternalId(), "factor", null, null);
+
+                }
+            }
+            else if (lastEvaluation.getValue().getFirst() < value && previousCategoryLevel != currentCategoryLevel) {
+                if (alreadyCreated_CD != null) alertRepository.deleteById(alreadyCreated_CD.getId());
+                if (alreadyCreated_NT != null) alertRepository.deleteById(alreadyCreated_NT.getId());
+
+                if (alreadyCreated_CU == null) createAlert(value, factor.getThreshold(), AlertType.CATEGORY_UPGRADE, factor.getProject(),
+                        factor.getExternalId(), "factor", null,null);
+                else if (alreadyCreated_CU.getValue() != value || !Objects.equals(alreadyCreated_CU.getThreshold(), factor.getThreshold())) {
+                    alertRepository.deleteById(alreadyCreated_CU.getId());
+                    createAlert(value, factor.getThreshold(), AlertType.CATEGORY_UPGRADE, factor.getProject(),
+                            factor.getExternalId(), "factor", null,null);
+                }
+            }
+            else {
+                if (alreadyCreated_CD != null) alertRepository.deleteById(alreadyCreated_CD.getId());
+                if (alreadyCreated_CU != null) alertRepository.deleteById(alreadyCreated_CU.getId());
+
+                Alert previousDowngradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(factor.getProject().getId(),
+                        factor.getExternalId(), "factor", AlertType.CATEGORY_DOWNGRADE);
+                Alert previousUpgradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(factor.getProject().getId(),
+                        factor.getExternalId(), "factor", AlertType.CATEGORY_UPGRADE);
+                Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(factor.getProject().getId(),
+                        factor.getExternalId(), "factor", AlertType.ALERT_NOT_TREATED);
                 Alert lastAlert = obtainMostRecentAlert(previousDowngradeAlert, previousUpgradeAlert, previousNotTreatedAlert);
 
-                if (lastAlert!=null && (lastAlert.getType() == AlertType.CATEGORY_DOWNGRADE || lastAlert.getType() == AlertType.ALERT_NOT_TREATED)){
+                if (lastAlert != null && (lastAlert.getType() == AlertType.CATEGORY_DOWNGRADE || lastAlert.getType() == AlertType.ALERT_NOT_TREATED)){
                     Date todayDate = new Date();
                     long diff = todayDate.getTime() - lastAlert.getDate().getTime();
-                    if (TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS) > 7) createAlert(value,
-                            factor.getThreshold(), AlertType.ALERT_NOT_TREATED,
-                            factor.getProject(), factor.getExternalId(), "factor", null, null);
+                    if (TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS) > 7) {
+                        if (alreadyCreated_NT == null) createAlert(value, factor.getThreshold(), AlertType.ALERT_NOT_TREATED, factor.getProject(),
+                                factor.getExternalId(), "factor", null, null);
+                        else if (alreadyCreated_NT.getValue() != value || !Objects.equals(alreadyCreated_NT.getThreshold(), factor.getThreshold())) {
+                            alertRepository.deleteById(alreadyCreated_NT.getId());
+                            createAlert(value, factor.getThreshold(), AlertType.ALERT_NOT_TREATED, factor.getProject(),
+                                    factor.getExternalId(), "factor", null, null);
+                        }
+                    }
                 }
             }
         }
     }
 
     private void checkFactorThresholdTrespassedAlert(Factor factor, float value) throws ProjectNotFoundException, IOException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
+        Date todayStartDate = getTodayStartOfDayInstant();
+        Date now = new Date();
+
+        Alert alreadyCreated_NT = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateGreaterThanEqualAndDateLessThan(
+                factor.getProject().getId(), factor.getExternalId(), "factor", AlertType.ALERT_NOT_TREATED, todayStartDate, now);
+        Alert alreadyCreated_TT = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateGreaterThanEqualAndDateLessThan(
+                factor.getProject().getId(), factor.getExternalId(), "factor", AlertType.TRESPASSED_THRESHOLD, todayStartDate, now);
+
         if (value < factor.getThreshold()){
-            Alert previousThresholdAlert = alertRepository.findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(factor.getProject().getId(),
-                    factor.getExternalId(), AlertType.TRESPASSED_THRESHOLD);
-            Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(factor.getProject().getId(),
-                    factor.getExternalId(), AlertType.ALERT_NOT_TREATED);
+            Alert previousThresholdAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(factor.getProject().getId(),
+                    factor.getExternalId(), "factor", AlertType.TRESPASSED_THRESHOLD);
+            Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(factor.getProject().getId(),
+                    factor.getExternalId(), "factor", AlertType.ALERT_NOT_TREATED);
 
             Alert lastAlert = obtainMostRecentAlert(previousThresholdAlert, previousNotTreatedAlert);
 
@@ -265,15 +387,40 @@ public class AlertsController {
                 Date today = new Date();
                 long diff = today.getTime() - lastAlertDate.getTime();
                 boolean isAlertNotTreated = isATrespassedThresholdNotTreated(factor.getThreshold(),factorEvaluationValues);
-                if (isAlertNotTreated && TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS) > 7){
-                    createAlert(value, factor.getThreshold(),
-                            AlertType.ALERT_NOT_TREATED, factor.getProject(), factor.getExternalId(), "factor", null, null);
+                if (isAlertNotTreated && TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS) > 7) {
+                    if (alreadyCreated_TT != null) alertRepository.deleteById(alreadyCreated_TT.getId());
+                    if (alreadyCreated_NT == null) createAlert(value, factor.getThreshold(), AlertType.ALERT_NOT_TREATED, factor.getProject(),
+                            factor.getExternalId(), "factor", null, null);
+                    else if (alreadyCreated_NT.getValue() != value || !Objects.equals(alreadyCreated_NT.getThreshold(), factor.getThreshold())) {
+                        alertRepository.deleteById(alreadyCreated_NT.getId());
+                        createAlert(value, factor.getThreshold(), AlertType.ALERT_NOT_TREATED, factor.getProject(),
+                                factor.getExternalId(), "factor", null, null);
+                    }
                 }
-                else if (!isAlertNotTreated) createAlert(value, factor.getThreshold(),
-                        AlertType.TRESPASSED_THRESHOLD, factor.getProject(), factor.getExternalId(), "factor", null, null);
+                else if (!isAlertNotTreated) {
+                    if (alreadyCreated_NT != null) alertRepository.deleteById(alreadyCreated_NT.getId());
+                    if (alreadyCreated_TT == null) createAlert(value, factor.getThreshold(),
+                            AlertType.TRESPASSED_THRESHOLD, factor.getProject(), factor.getExternalId(), "factor", null, null);
+                    else if (alreadyCreated_TT.getValue() != value || !Objects.equals(alreadyCreated_TT.getThreshold(), factor.getThreshold())) {
+                        alertRepository.deleteById(alreadyCreated_TT.getId());
+                        createAlert(value, factor.getThreshold(),
+                                AlertType.TRESPASSED_THRESHOLD, factor.getProject(), factor.getExternalId(), "factor", null, null);
+                    }
+                }
             }
-            else createAlert(value, factor.getThreshold(),
-                    AlertType.TRESPASSED_THRESHOLD, factor.getProject(), factor.getExternalId(), "factor", null, null);
+            else {
+                if (alreadyCreated_TT == null) createAlert(value, factor.getThreshold(),
+                        AlertType.TRESPASSED_THRESHOLD, factor.getProject(), factor.getExternalId(), "factor", null, null);
+                else if (alreadyCreated_TT.getValue() != value || !Objects.equals(alreadyCreated_TT.getThreshold(), factor.getThreshold())) {
+                    alertRepository.deleteById(alreadyCreated_TT.getId());
+                    createAlert(value, factor.getThreshold(),
+                            AlertType.TRESPASSED_THRESHOLD, factor.getProject(), factor.getExternalId(), "factor", null, null);
+                }
+            }
+        }
+        else {
+            if (alreadyCreated_NT != null) alertRepository.deleteById(alreadyCreated_NT.getId());
+            if (alreadyCreated_TT != null) alertRepository.deleteById(alreadyCreated_TT.getId());
         }
     }
 
@@ -305,37 +452,71 @@ public class AlertsController {
             logger.error(e.getMessage(), e);
         }
 
+        Date todayStartDate = getTodayStartOfDayInstant();
+        Date now = new Date();
+
         if (!siEvaluations.isEmpty()){
             DTODetailedStrategicIndicatorEvaluation lastEvaluation = siEvaluations.get(0); //assuming most recents are first
 
             int previousCategoryLevel = findCategoryLevel(lastEvaluation.getValue().getFirst(),categoryThresholds);
             int currentCategoryLevel = findCategoryLevel(value,categoryThresholds);
 
-            if (lastEvaluation.getValue().getFirst() > value && previousCategoryLevel!=currentCategoryLevel ){
-                createAlert(value, strategicIndicator.getThreshold(),
-                        AlertType.CATEGORY_DOWNGRADE, strategicIndicator.getProject(), strategicIndicator.getExternalId(),
-                        "indicator", null, null);
+            Alert alreadyCreated_CU = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateGreaterThanEqualAndDateLessThan(
+                    strategicIndicator.getProject().getId(), strategicIndicator.getExternalId(), "indicator", AlertType.CATEGORY_UPGRADE, todayStartDate, now);
+            Alert alreadyCreated_CD = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateGreaterThanEqualAndDateLessThan(
+                    strategicIndicator.getProject().getId(), strategicIndicator.getExternalId(), "indicator", AlertType.CATEGORY_DOWNGRADE, todayStartDate, now);
+            Alert alreadyCreated_NT = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateGreaterThanEqualAndDateLessThan(
+                    strategicIndicator.getProject().getId(), strategicIndicator.getExternalId(), "indicator", AlertType.ALERT_NOT_TREATED, todayStartDate, now);
+
+            if (lastEvaluation.getValue().getFirst() > value && previousCategoryLevel != currentCategoryLevel) {
+                if (alreadyCreated_CU != null) alertRepository.deleteById(alreadyCreated_CU.getId());
+                if (alreadyCreated_NT != null) alertRepository.deleteById(alreadyCreated_NT.getId());
+
+                if (alreadyCreated_CD == null) createAlert(value, strategicIndicator.getThreshold(), AlertType.CATEGORY_DOWNGRADE, strategicIndicator.getProject(),
+                        strategicIndicator.getExternalId(), "indicator", null, null);
+                else if (alreadyCreated_CD.getValue() != value || !Objects.equals(alreadyCreated_CD.getThreshold(), strategicIndicator.getThreshold())) {
+                    alertRepository.deleteById(alreadyCreated_CD.getId());
+                    createAlert(value, strategicIndicator.getThreshold(), AlertType.CATEGORY_DOWNGRADE, strategicIndicator.getProject(),
+                            strategicIndicator.getExternalId(), "indicator", null, null);
+
+                }
             }
-            else if (lastEvaluation.getValue().getFirst() < value && previousCategoryLevel!=currentCategoryLevel){
-                createAlert(value, strategicIndicator.getThreshold(),
-                        AlertType.CATEGORY_UPGRADE, strategicIndicator.getProject(), strategicIndicator.getExternalId(),
-                        "indicator", null, null);
+            else if (lastEvaluation.getValue().getFirst() < value && previousCategoryLevel != currentCategoryLevel) {
+                if (alreadyCreated_CD != null) alertRepository.deleteById(alreadyCreated_CD.getId());
+                if (alreadyCreated_NT != null) alertRepository.deleteById(alreadyCreated_NT.getId());
+
+                if (alreadyCreated_CU == null) createAlert(value, strategicIndicator.getThreshold(), AlertType.CATEGORY_UPGRADE, strategicIndicator.getProject(),
+                        strategicIndicator.getExternalId(), "indicator", null,null);
+                else if (alreadyCreated_CU.getValue() != value || !Objects.equals(alreadyCreated_CU.getThreshold(), strategicIndicator.getThreshold())) {
+                    alertRepository.deleteById(alreadyCreated_CU.getId());
+                    createAlert(value, strategicIndicator.getThreshold(), AlertType.CATEGORY_UPGRADE, strategicIndicator.getProject(),
+                            strategicIndicator.getExternalId(), "indicator", null,null);
+                }
             }
             else {
-                Alert previousDowngradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(strategicIndicator.getProject().getId(),
-                        strategicIndicator.getExternalId(), AlertType.CATEGORY_DOWNGRADE);
-                Alert previousUpgradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(strategicIndicator.getProject().getId(),
-                        strategicIndicator.getExternalId(), AlertType.CATEGORY_UPGRADE);
-                Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(strategicIndicator.getProject().getId(),
-                        strategicIndicator.getExternalId(), AlertType.ALERT_NOT_TREATED);
+                if (alreadyCreated_CD != null) alertRepository.deleteById(alreadyCreated_CD.getId());
+                if (alreadyCreated_CU != null) alertRepository.deleteById(alreadyCreated_CU.getId());
+
+                Alert previousDowngradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(strategicIndicator.getProject().getId(),
+                        strategicIndicator.getExternalId(), "indicator", AlertType.CATEGORY_DOWNGRADE);
+                Alert previousUpgradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(strategicIndicator.getProject().getId(),
+                        strategicIndicator.getExternalId(), "indicator", AlertType.CATEGORY_UPGRADE);
+                Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(strategicIndicator.getProject().getId(),
+                        strategicIndicator.getExternalId(), "indicator", AlertType.ALERT_NOT_TREATED);
                 Alert lastAlert = obtainMostRecentAlert(previousDowngradeAlert, previousUpgradeAlert, previousNotTreatedAlert);
 
-                if (lastAlert!=null && (lastAlert.getType() == AlertType.CATEGORY_DOWNGRADE || lastAlert.getType() == AlertType.ALERT_NOT_TREATED)){
+                if (lastAlert != null && (lastAlert.getType() == AlertType.CATEGORY_DOWNGRADE || lastAlert.getType() == AlertType.ALERT_NOT_TREATED)){
                     Date todayDate = new Date();
                     long diff = todayDate.getTime() - lastAlert.getDate().getTime();
-                    if (TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS) > 7) createAlert(value, strategicIndicator.getThreshold(),
-                            AlertType.ALERT_NOT_TREATED, strategicIndicator.getProject(), strategicIndicator.getExternalId(),
-                            "indicator", null, null);
+                    if (TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS) > 7) {
+                        if (alreadyCreated_NT == null) createAlert(value, strategicIndicator.getThreshold(), AlertType.ALERT_NOT_TREATED, strategicIndicator.getProject(),
+                                strategicIndicator.getExternalId(), "indicator", null, null);
+                        else if (alreadyCreated_NT.getValue() != value || !Objects.equals(alreadyCreated_NT.getThreshold(), strategicIndicator.getThreshold())) {
+                            alertRepository.deleteById(alreadyCreated_NT.getId());
+                            createAlert(value, strategicIndicator.getThreshold(), AlertType.ALERT_NOT_TREATED, strategicIndicator.getProject(),
+                                    strategicIndicator.getExternalId(), "indicator", null, null);
+                        }
+                    }
                 }
             }
         }
@@ -343,11 +524,19 @@ public class AlertsController {
     }
 
     private void checkSIThresholdTrespassedAlert(Strategic_Indicator strategicIndicator, float value) throws ProjectNotFoundException, IOException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
+        Date todayStartDate = getTodayStartOfDayInstant();
+        Date now = new Date();
+
+        Alert alreadyCreated_NT = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateGreaterThanEqualAndDateLessThan(
+                strategicIndicator.getProject().getId(), strategicIndicator.getExternalId(), "indicator", AlertType.ALERT_NOT_TREATED, todayStartDate, now);
+        Alert alreadyCreated_TT = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateGreaterThanEqualAndDateLessThan(
+                strategicIndicator.getProject().getId(), strategicIndicator.getExternalId(), "indicator", AlertType.TRESPASSED_THRESHOLD, todayStartDate, now);
+
         if (value < strategicIndicator.getThreshold()){
-            Alert previousThresholdAlert = alertRepository.findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(strategicIndicator.getProject().getId(),
-                    strategicIndicator.getExternalId(), AlertType.TRESPASSED_THRESHOLD);
-            Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(strategicIndicator.getProject().getId(),
-                    strategicIndicator.getExternalId(), AlertType.ALERT_NOT_TREATED);
+            Alert previousThresholdAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(strategicIndicator.getProject().getId(),
+                    strategicIndicator.getExternalId(), "indicator", AlertType.TRESPASSED_THRESHOLD);
+            Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(strategicIndicator.getProject().getId(),
+                    strategicIndicator.getExternalId(), "indicator", AlertType.ALERT_NOT_TREATED);
 
             Alert lastAlert = obtainMostRecentAlert(previousThresholdAlert, previousNotTreatedAlert);
 
@@ -356,35 +545,55 @@ public class AlertsController {
 
                 LocalDate fromDate = lastAlertDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
                 LocalDate toDate = LocalDate.now();
+                List<Float> factorEvaluationValues = new ArrayList<>();
 
-                List<Float> siEvaluationsValues = new ArrayList<>();
-                List<DTODetailedStrategicIndicatorEvaluation> siEvaluations = null;
-                    siEvaluations = qmaDetailedStrategicIndicators.HistoricalData(
-                            strategicIndicator.getExternalId(), fromDate, toDate, strategicIndicator.getProject().getExternalId(),
-                            null);
-
-                for (DTODetailedStrategicIndicatorEvaluation eval : siEvaluations) {
-                    siEvaluationsValues.add(eval.getValue().getFirst());
+                List<DTODetailedFactorEvaluation> factorEvaluations = null;
+                factorEvaluations = qmaFactors.HistoricalData(strategicIndicator.getExternalId(), fromDate, toDate, strategicIndicator.getProject().getExternalId(), null);
+                for (DTODetailedFactorEvaluation factorEvaluation : factorEvaluations) {
+                    factorEvaluationValues.add(factorEvaluation.getValue().getFirst());
                 }
 
                 Date today = new Date();
                 long diff = today.getTime() - lastAlertDate.getTime();
-                boolean isAlertNotTreated = isATrespassedThresholdNotTreated(strategicIndicator.getThreshold(), siEvaluationsValues);
-                if (isAlertNotTreated && TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS) > 7){
-                    createAlert(value, strategicIndicator.getThreshold(),
-                            AlertType.ALERT_NOT_TREATED, strategicIndicator.getProject(), strategicIndicator.getExternalId(), "indicator", null, null);
+                boolean isAlertNotTreated = isATrespassedThresholdNotTreated(strategicIndicator.getThreshold(),factorEvaluationValues);
+                if (isAlertNotTreated && TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS) > 7) {
+                    if (alreadyCreated_TT != null) alertRepository.deleteById(alreadyCreated_TT.getId());
+                    if (alreadyCreated_NT == null) createAlert(value, strategicIndicator.getThreshold(), AlertType.ALERT_NOT_TREATED, strategicIndicator.getProject(),
+                            strategicIndicator.getExternalId(), "indicator", null, null);
+                    else if (alreadyCreated_NT.getValue() != value || !Objects.equals(alreadyCreated_NT.getThreshold(), strategicIndicator.getThreshold())) {
+                        alertRepository.deleteById(alreadyCreated_NT.getId());
+                        createAlert(value, strategicIndicator.getThreshold(), AlertType.ALERT_NOT_TREATED, strategicIndicator.getProject(),
+                                strategicIndicator.getExternalId(), "indicator", null, null);
+                    }
                 }
                 else if (!isAlertNotTreated) {
+                    if (alreadyCreated_NT != null) alertRepository.deleteById(alreadyCreated_NT.getId());
+                    if (alreadyCreated_TT == null) createAlert(value, strategicIndicator.getThreshold(),
+                            AlertType.TRESPASSED_THRESHOLD, strategicIndicator.getProject(), strategicIndicator.getExternalId(), "indicator", null, null);
+                    else if (alreadyCreated_TT.getValue() != value || !Objects.equals(alreadyCreated_TT.getThreshold(), strategicIndicator.getThreshold())) {
+                        alertRepository.deleteById(alreadyCreated_TT.getId());
+                        createAlert(value, strategicIndicator.getThreshold(),
+                                AlertType.TRESPASSED_THRESHOLD, strategicIndicator.getProject(), strategicIndicator.getExternalId(), "indicator", null, null);
+                    }
+                }
+            }
+            else {
+                if (alreadyCreated_TT == null) createAlert(value, strategicIndicator.getThreshold(),
+                        AlertType.TRESPASSED_THRESHOLD, strategicIndicator.getProject(), strategicIndicator.getExternalId(), "indicator", null, null);
+                else if (alreadyCreated_TT.getValue() != value || !Objects.equals(alreadyCreated_TT.getThreshold(), strategicIndicator.getThreshold())) {
+                    alertRepository.deleteById(alreadyCreated_TT.getId());
                     createAlert(value, strategicIndicator.getThreshold(),
                             AlertType.TRESPASSED_THRESHOLD, strategicIndicator.getProject(), strategicIndicator.getExternalId(), "indicator", null, null);
                 }
             }
-            else createAlert(value, strategicIndicator.getThreshold(),
-                    AlertType.TRESPASSED_THRESHOLD, strategicIndicator.getProject(), strategicIndicator.getExternalId(), "indicator", null, null);
+        }
+        else {
+            if (alreadyCreated_NT != null) alertRepository.deleteById(alreadyCreated_NT.getId());
+            if (alreadyCreated_TT != null) alertRepository.deleteById(alreadyCreated_TT.getId());
         }
     }
 
-     boolean isATrespassedThresholdNotTreated(Float threshold, List<Float> previousEvaluationsValues){
+    boolean isATrespassedThresholdNotTreated(Float threshold, List<Float> previousEvaluationsValues){
         boolean improvedSinceLastAlert = false;
         for (Float evalValue : previousEvaluationsValues) {
             if (evalValue >= threshold) {
@@ -488,22 +697,42 @@ public class AlertsController {
         Date todayStartDate = getTodayStartOfDayInstant();
         Date now = new Date();
 
+        Alert alreadyCreated_CD = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndPredictionTechniqueAndPredictionDateAndDateGreaterThanEqualAndDateLessThan(
+                project.getId(), affectedId, affectedType, AlertType.PREDICTED_CATEGORY_DOWNGRADE, technique, predictionDate,  todayStartDate, now);
+
+        Alert alreadyCreated_CU = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndPredictionTechniqueAndPredictionDateAndDateGreaterThanEqualAndDateLessThan(
+                project.getId(), affectedId, affectedType, AlertType.PREDICTED_CATEGORY_UPGRADE, technique, predictionDate,  todayStartDate, now);
+
+
         if (predictedValue!=null && predictedValue >= 0.f && currentValue > predictedValue && previousCategoryLevel!=predictedCategoryLevel ){
-            //check if today an exact alert has been created (it means the prediction has been refreshed and the result has been the same forecast)
-            Alert alreadyCreated = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndValueAndTypeAndPredictionTechniqueAndPredictionDateAndDateGreaterThanEqualAndDateLessThanAndThreshold(
-                    project.getId(), affectedId, affectedType, predictedValue, AlertType.PREDICTED_CATEGORY_DOWNGRADE, technique, predictionDate,  todayStartDate, now, threshold);
-            if (alreadyCreated == null) createAlert(predictedValue, threshold, AlertType.PREDICTED_CATEGORY_DOWNGRADE, project,
+            if (alreadyCreated_CU != null) alertRepository.deleteById(alreadyCreated_CU.getId());
+            if (alreadyCreated_CD == null) createAlert(predictedValue, threshold, AlertType.PREDICTED_CATEGORY_DOWNGRADE, project,
                     affectedId, affectedType, predictionDate, technique);
-            alertCreated=true;
+            else if (!Objects.equals(alreadyCreated_CD.getThreshold(), threshold) || alreadyCreated_CD.getValue() != predictedValue) {
+                alertRepository.deleteById(alreadyCreated_CD.getId());
+                createAlert(predictedValue, threshold, AlertType.PREDICTED_CATEGORY_DOWNGRADE, project,
+                        affectedId, affectedType, predictionDate, technique);
+            }
+            alertCreated = true;
         }
+
         else if (predictedValue!=null && predictedValue <= 1.f && currentValue < predictedValue && previousCategoryLevel!=predictedCategoryLevel) {
-            //check if today an exact alert has been created (it means the prediction has been refreshed and the result has been the same forecast)
-            Alert alreadyCreated = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndValueAndTypeAndPredictionTechniqueAndPredictionDateAndDateGreaterThanEqualAndDateLessThanAndThreshold(
-                    project.getId(), affectedId, affectedType, predictedValue, AlertType.PREDICTED_CATEGORY_UPGRADE, technique, predictionDate,  todayStartDate, now, threshold);
-            if (alreadyCreated == null) createAlert(predictedValue, threshold, AlertType.PREDICTED_CATEGORY_UPGRADE, project,
+            if (alreadyCreated_CD != null) alertRepository.deleteById(alreadyCreated_CD.getId());
+            if (alreadyCreated_CU == null) createAlert(predictedValue, threshold, AlertType.PREDICTED_CATEGORY_UPGRADE, project,
                     affectedId, affectedType,predictionDate, technique);
-            alertCreated=true;
+            else if (!Objects.equals(alreadyCreated_CU.getThreshold(), threshold) || alreadyCreated_CU.getValue() != predictedValue) {
+                alertRepository.deleteById(alreadyCreated_CU.getId());
+                createAlert(predictedValue, threshold, AlertType.PREDICTED_CATEGORY_UPGRADE, project,
+                        affectedId, affectedType,predictionDate, technique);
+            }
+            alertCreated = true;
         }
+
+        else {
+            if (alreadyCreated_CU != null) alertRepository.deleteById(alreadyCreated_CU.getId());
+            if (alreadyCreated_CD != null) alertRepository.deleteById(alreadyCreated_CD.getId());
+        }
+
         return alertCreated;
     }
 
@@ -512,15 +741,23 @@ public class AlertsController {
         Date todayStartDate = getTodayStartOfDayInstant();
         Date now = new Date();
 
-        if (threshold!= null && predictedValue!=null && predictedValue < threshold && currentValue >= threshold ){
-            //check if today an exact alert has been created (it means the prediction has been refreshed and the result has been the same forecast)
-            Alert alreadyCreated = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndValueAndTypeAndPredictionTechniqueAndPredictionDateAndDateGreaterThanEqualAndDateLessThanAndThreshold(
-                    project.getId(), affectedId,affectedType, predictedValue, AlertType.PREDICTED_TRESPASSED_THRESHOLD, technique, predictionDate,  todayStartDate, now, threshold);
-            if (alreadyCreated == null) createAlert(predictedValue, threshold, AlertType.PREDICTED_TRESPASSED_THRESHOLD,
-                   project, affectedId, affectedType, predictionDate, technique );
+        Alert alreadyCreated = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndPredictionTechniqueAndPredictionDateAndDateGreaterThanEqualAndDateLessThan(
+                project.getId(), affectedId,affectedType, AlertType.PREDICTED_TRESPASSED_THRESHOLD, technique, predictionDate,  todayStartDate, now);
+
+        if (threshold != null && predictedValue != null && predictedValue < threshold && currentValue >= threshold) {
+            if (alreadyCreated == null)
+                createAlert(predictedValue, threshold, AlertType.PREDICTED_TRESPASSED_THRESHOLD, project,
+                        affectedId, affectedType, predictionDate, technique);
+
+            else if (alreadyCreated.getValue() != predictedValue || !Objects.equals(alreadyCreated.getThreshold(), threshold)) {
+                alertRepository.deleteById(alreadyCreated.getId());
+                createAlert(predictedValue, threshold, AlertType.PREDICTED_TRESPASSED_THRESHOLD, project,
+                        affectedId, affectedType, predictionDate, technique);
+            }
             alertCreated = true;
 
         }
+        else if (alreadyCreated != null) alertRepository.deleteById(alreadyCreated.getId());
         return alertCreated;
     }
 
@@ -621,7 +858,6 @@ public class AlertsController {
         return result;
     }
 
-
     public Alert getAlertById(Long alertId) throws AlertNotFoundException {
         Alert alert = alertRepository.findAlertById(alertId);
         if (alert == null) throw new AlertNotFoundException();
@@ -655,6 +891,7 @@ public class AlertsController {
         else if (secondAlert!=null) return secondAlert;
         else return null;
     }
+
     public Alert obtainMostRecentAlert(Alert firstAlert, Alert secondAlert, Alert thirdAlert){
         if (firstAlert!=null && secondAlert!=null && thirdAlert!=null){
             Alert recentAlert = obtainMostRecentAlert(firstAlert,secondAlert);
@@ -676,7 +913,4 @@ public class AlertsController {
         else if (thirdAlert!=null) return thirdAlert;
         else return null;
     }
-
-
-
 }
