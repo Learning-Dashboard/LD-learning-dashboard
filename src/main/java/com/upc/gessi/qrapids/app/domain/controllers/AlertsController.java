@@ -94,7 +94,7 @@ public class AlertsController {
 
     }
 
-    void checkMetricThresholdTrespassedAlert(Metric metric, float value) throws IOException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
+    private void checkMetricThresholdTrespassedAlert(Metric metric, float value) throws IOException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
         if (metric.getThreshold()!= null && value < metric.getThreshold()){
             Alert previousThresholdAlert= alertRepository.findTopByProjectIdAndAffectedIdAndTypeOrderByIdDesc(metric.getProject().getId(),
                     metric.getExternalId(), AlertType.TRESPASSED_THRESHOLD);
@@ -131,9 +131,11 @@ public class AlertsController {
                     AlertType.TRESPASSED_THRESHOLD, metric.getProject(), metric.getExternalId(), "metric", null, null);
         }
     }
-    void checkMetricColorChangedAlert(Metric metric, float value, List<Float> metricCategoryThresholds) throws IOException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
-    LocalDate toDate = LocalDate.now();
-    LocalDate fromDate = toDate.minusDays(30);
+
+    private void checkMetricColorChangedAlert(Metric metric, float value, List<Float> metricCategoryThresholds) throws IOException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
+        LocalDate Date = LocalDate.now();
+        LocalDate toDate = Date.minusDays(1);
+        LocalDate fromDate = toDate.minusDays(30);
 
         List<DTOMetricEvaluation> metricEvaluations = new ArrayList<>();
         try{
@@ -196,7 +198,7 @@ public class AlertsController {
 
     private void checkFactorColorChangedAlert(Factor factor, float value, List<Float> categoryThresholds) throws ProjectNotFoundException, IOException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
         LocalDate fromDate = LocalDate.now().minusDays(30);
-        LocalDate toDate = LocalDate.now();
+        LocalDate toDate = LocalDate.now().minusDays(1);
         List<DTODetailedFactorEvaluation> factorEvaluations = new ArrayList<>();
         try{
             factorEvaluations = qmaFactors.HistoricalData(factor.getExternalId(),
@@ -275,7 +277,6 @@ public class AlertsController {
         }
     }
 
-
     //STRATEGIC INDICATOR ALERT CHECK
     public void shouldCreateIndicatorAlert (Strategic_Indicator strategicIndicator, float value) throws ProjectNotFoundException, IOException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
         List<SICategory> SICategories = new ArrayList<>();
@@ -293,7 +294,7 @@ public class AlertsController {
 
     private void checkSIColorChangedAlert(Strategic_Indicator strategicIndicator, float value, List<Float>categoryThresholds) throws ProjectNotFoundException, IOException, MetricNotFoundException, QualityFactorNotFoundException, StrategicIndicatorNotFoundException {
         LocalDate fromDate = LocalDate.now().minusDays(30);
-        LocalDate toDate = LocalDate.now();
+        LocalDate toDate = LocalDate.now().minusDays(1);
         List<DTODetailedStrategicIndicatorEvaluation> siEvaluations = new ArrayList<>();
         try{
             siEvaluations = qmaDetailedStrategicIndicators.HistoricalData
@@ -383,7 +384,6 @@ public class AlertsController {
         }
     }
 
-
      boolean isATrespassedThresholdNotTreated(Float threshold, List<Float> previousEvaluationsValues){
         boolean improvedSinceLastAlert = false;
         for (Float evalValue : previousEvaluationsValues) {
@@ -399,7 +399,7 @@ public class AlertsController {
         boolean levelFound = false;
         int level = -1;
         for (int i = categoryThresholds.size() - 1; i >= 0 && !levelFound; i--) {
-            if (value!=null && value <= categoryThresholds.get(i)) {
+            if (value != null && value <= categoryThresholds.get(i)) {
                 level = i + 1;
                 levelFound = true;
             }

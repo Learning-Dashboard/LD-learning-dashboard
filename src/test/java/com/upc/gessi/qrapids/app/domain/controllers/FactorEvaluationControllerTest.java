@@ -36,6 +36,9 @@ public class FactorEvaluationControllerTest {
     private QMAQualityFactors qmaQualityFactors;
 
     @Mock
+    private AlertsController alertsController;
+
+    @Mock
     private Forecast qmaForecast;
 
     @Mock

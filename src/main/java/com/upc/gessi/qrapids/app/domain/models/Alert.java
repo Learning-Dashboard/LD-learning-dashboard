@@ -41,8 +41,8 @@ public class Alert {
         this.affectedType = affectedType;
         this.predictionDate=predictionDate;
         this.predictionTechnique=technique;
-        date =  new Date();
-        status = AlertStatus.NEW;
+        this.date =  new Date();
+        this.status = AlertStatus.NEW;
     };
 
     public Alert() {
