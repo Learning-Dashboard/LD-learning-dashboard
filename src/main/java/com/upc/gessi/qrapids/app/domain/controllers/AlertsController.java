@@ -105,10 +105,10 @@ public class AlertsController {
                 metric.getProject().getId(), metric.getExternalId(), "metric", AlertType.TRESPASSED_THRESHOLD, todayStartDate, now);
 
         if (metric.getThreshold() != null && value < metric.getThreshold()){
-            Alert previousThresholdAlert= alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(metric.getProject().getId(),
-                    metric.getExternalId(), "metric", AlertType.TRESPASSED_THRESHOLD);
-            Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(metric.getProject().getId(),
-                    metric.getExternalId(), "metric", AlertType.ALERT_NOT_TREATED);
+            Alert previousThresholdAlert= alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                    metric.getProject().getId(), metric.getExternalId(), "metric", AlertType.TRESPASSED_THRESHOLD, todayStartDate);
+            Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                    metric.getProject().getId(), metric.getExternalId(), "metric", AlertType.ALERT_NOT_TREATED, todayStartDate);
 
             Alert lastAlert = obtainMostRecentAlert(previousThresholdAlert, previousNotTreatedAlert);
 
@@ -230,12 +230,12 @@ public class AlertsController {
                 if (alreadyCreated_CD != null) alertRepository.deleteById(alreadyCreated_CD.getId());
                 if (alreadyCreated_CU != null) alertRepository.deleteById(alreadyCreated_CU.getId());
 
-                Alert previousDowngradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(metric.getProject().getId(),
-                        metric.getExternalId(), "metric", AlertType.CATEGORY_DOWNGRADE);
-                Alert previousUpgradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(metric.getProject().getId(),
-                        metric.getExternalId(), "metric", AlertType.CATEGORY_UPGRADE);
-                Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(metric.getProject().getId(),
-                        metric.getExternalId(), "metric", AlertType.ALERT_NOT_TREATED);
+                Alert previousDowngradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                        metric.getProject().getId(), metric.getExternalId(), "metric", AlertType.CATEGORY_DOWNGRADE, todayStartDate);
+                Alert previousUpgradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                        metric.getProject().getId(), metric.getExternalId(), "metric", AlertType.CATEGORY_UPGRADE, todayStartDate);
+                Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                        metric.getProject().getId(), metric.getExternalId(), "metric", AlertType.ALERT_NOT_TREATED, todayStartDate);
                 Alert lastAlert = obtainMostRecentAlert(previousDowngradeAlert, previousUpgradeAlert, previousNotTreatedAlert);
 
                 if (lastAlert != null && (lastAlert.getType() == AlertType.CATEGORY_DOWNGRADE || lastAlert.getType() == AlertType.ALERT_NOT_TREATED)){
@@ -329,12 +329,12 @@ public class AlertsController {
                 if (alreadyCreated_CD != null) alertRepository.deleteById(alreadyCreated_CD.getId());
                 if (alreadyCreated_CU != null) alertRepository.deleteById(alreadyCreated_CU.getId());
 
-                Alert previousDowngradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(factor.getProject().getId(),
-                        factor.getExternalId(), "factor", AlertType.CATEGORY_DOWNGRADE);
-                Alert previousUpgradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(factor.getProject().getId(),
-                        factor.getExternalId(), "factor", AlertType.CATEGORY_UPGRADE);
-                Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(factor.getProject().getId(),
-                        factor.getExternalId(), "factor", AlertType.ALERT_NOT_TREATED);
+                Alert previousDowngradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                        factor.getProject().getId(), factor.getExternalId(), "factor", AlertType.CATEGORY_DOWNGRADE, todayStartDate);
+                Alert previousUpgradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                        factor.getProject().getId(), factor.getExternalId(), "factor", AlertType.CATEGORY_UPGRADE, todayStartDate);
+                Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                        factor.getProject().getId(), factor.getExternalId(), "factor", AlertType.ALERT_NOT_TREATED, todayStartDate);
                 Alert lastAlert = obtainMostRecentAlert(previousDowngradeAlert, previousUpgradeAlert, previousNotTreatedAlert);
 
                 if (lastAlert != null && (lastAlert.getType() == AlertType.CATEGORY_DOWNGRADE || lastAlert.getType() == AlertType.ALERT_NOT_TREATED)){
@@ -364,10 +364,10 @@ public class AlertsController {
                 factor.getProject().getId(), factor.getExternalId(), "factor", AlertType.TRESPASSED_THRESHOLD, todayStartDate, now);
 
         if (factor.getThreshold() != null && value < factor.getThreshold()){
-            Alert previousThresholdAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(factor.getProject().getId(),
-                    factor.getExternalId(), "factor", AlertType.TRESPASSED_THRESHOLD);
-            Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(factor.getProject().getId(),
-                    factor.getExternalId(), "factor", AlertType.ALERT_NOT_TREATED);
+            Alert previousThresholdAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                    factor.getProject().getId(), factor.getExternalId(), "factor", AlertType.TRESPASSED_THRESHOLD, todayStartDate);
+            Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                    factor.getProject().getId(), factor.getExternalId(), "factor", AlertType.ALERT_NOT_TREATED, todayStartDate);
 
             Alert lastAlert = obtainMostRecentAlert(previousThresholdAlert, previousNotTreatedAlert);
 
@@ -497,12 +497,12 @@ public class AlertsController {
                 if (alreadyCreated_CD != null) alertRepository.deleteById(alreadyCreated_CD.getId());
                 if (alreadyCreated_CU != null) alertRepository.deleteById(alreadyCreated_CU.getId());
 
-                Alert previousDowngradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(strategicIndicator.getProject().getId(),
-                        strategicIndicator.getExternalId(), "indicator", AlertType.CATEGORY_DOWNGRADE);
-                Alert previousUpgradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(strategicIndicator.getProject().getId(),
-                        strategicIndicator.getExternalId(), "indicator", AlertType.CATEGORY_UPGRADE);
-                Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(strategicIndicator.getProject().getId(),
-                        strategicIndicator.getExternalId(), "indicator", AlertType.ALERT_NOT_TREATED);
+                Alert previousDowngradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                        strategicIndicator.getProject().getId(), strategicIndicator.getExternalId(), "indicator", AlertType.CATEGORY_DOWNGRADE, todayStartDate);
+                Alert previousUpgradeAlert= alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                        strategicIndicator.getProject().getId(), strategicIndicator.getExternalId(), "indicator", AlertType.CATEGORY_UPGRADE, todayStartDate);
+                Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                        strategicIndicator.getProject().getId(), strategicIndicator.getExternalId(), "indicator", AlertType.ALERT_NOT_TREATED, todayStartDate);
                 Alert lastAlert = obtainMostRecentAlert(previousDowngradeAlert, previousUpgradeAlert, previousNotTreatedAlert);
 
                 if (lastAlert != null && (lastAlert.getType() == AlertType.CATEGORY_DOWNGRADE || lastAlert.getType() == AlertType.ALERT_NOT_TREATED)){
@@ -533,10 +533,10 @@ public class AlertsController {
                 strategicIndicator.getProject().getId(), strategicIndicator.getExternalId(), "indicator", AlertType.TRESPASSED_THRESHOLD, todayStartDate, now);
 
         if (strategicIndicator.getThreshold() != null && value < strategicIndicator.getThreshold()){
-            Alert previousThresholdAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(strategicIndicator.getProject().getId(),
-                    strategicIndicator.getExternalId(), "indicator", AlertType.TRESPASSED_THRESHOLD);
-            Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(strategicIndicator.getProject().getId(),
-                    strategicIndicator.getExternalId(), "indicator", AlertType.ALERT_NOT_TREATED);
+            Alert previousThresholdAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                    strategicIndicator.getProject().getId(), strategicIndicator.getExternalId(), "indicator", AlertType.TRESPASSED_THRESHOLD, todayStartDate);
+            Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                    strategicIndicator.getProject().getId(), strategicIndicator.getExternalId(), "indicator", AlertType.ALERT_NOT_TREATED, todayStartDate);
 
             Alert lastAlert = obtainMostRecentAlert(previousThresholdAlert, previousNotTreatedAlert);
 

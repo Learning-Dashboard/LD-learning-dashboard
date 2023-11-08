@@ -41,8 +41,6 @@ public class AlertsControllerTest {
     @InjectMocks
     private AlertsController alertsController;
     @Mock
-    private AlertsController alertsControllerMock;
-    @Mock
     private AlertRepository alertRepository;
     @Mock
     private MetricRepository metricRepository;
@@ -550,7 +548,9 @@ public class AlertsControllerTest {
         Date today = new Date();
         Date alertDate = new Date(today.getTime()-86400000*8);
         previousAlert.setDate(alertDate);
-        when(alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(projectId,currentMetric.getExternalId(),"metric",AlertType.TRESPASSED_THRESHOLD)).thenReturn(previousAlert);
+        when(alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                projectId,currentMetric.getExternalId(),"metric",AlertType.TRESPASSED_THRESHOLD, alertsController.getTodayStartOfDayInstant()))
+                .thenReturn(previousAlert);
 
         //create previous evaluations
         DTOMetricEvaluation previousEval = domainObjectsBuilder.buildDTOMetric();
@@ -566,7 +566,8 @@ public class AlertsControllerTest {
         alertsController.shouldCreateMetricAlert(currentMetricEval, value, projectId);
 
         // Then
-        verify(alertRepository, times (1)).findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(projectId,currentMetric.getExternalId(),"metric",AlertType.TRESPASSED_THRESHOLD);
+        verify(alertRepository, times (1)).findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                projectId,currentMetric.getExternalId(),"metric",AlertType.TRESPASSED_THRESHOLD, alertsController.getTodayStartOfDayInstant());
         verify(metricRepository, times(2)).findByExternalIdAndProjectId(currentMetricEval.getId(), projectId);
         verify(metricCategoryRepository, times(1)).findAllByName(currentMetric.getCategoryName());
         ArgumentCaptor<Alert> alertArgumentCaptor = ArgumentCaptor.forClass(Alert.class);
@@ -601,7 +602,9 @@ public class AlertsControllerTest {
         Date today = new Date();
         Date alertDate = new Date(today.getTime()-86400000);
         previousAlert.setDate(alertDate);
-        when(alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(projectId,currentMetric.getExternalId(),"metric",AlertType.TRESPASSED_THRESHOLD)).thenReturn(previousAlert);
+        when(alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                projectId,currentMetric.getExternalId(),"metric",AlertType.TRESPASSED_THRESHOLD, alertsController.getTodayStartOfDayInstant()))
+                .thenReturn(previousAlert);
 
         //create previous evaluations
         DTOMetricEvaluation previousEval = domainObjectsBuilder.buildDTOMetric();
@@ -617,7 +620,8 @@ public class AlertsControllerTest {
         alertsController.shouldCreateMetricAlert(currentMetricEval, value, projectId);
 
         // Then
-        verify(alertRepository, times (1)).findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(projectId,currentMetric.getExternalId(),"metric",AlertType.TRESPASSED_THRESHOLD);
+        verify(alertRepository, times (1)).findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                projectId,currentMetric.getExternalId(),"metric",AlertType.TRESPASSED_THRESHOLD, alertsController.getTodayStartOfDayInstant());
         verify(metricRepository, times(1)).findByExternalIdAndProjectId(currentMetricEval.getId(), projectId);
         verify(metricCategoryRepository, times(1)).findAllByName(currentMetric.getCategoryName());
     }
@@ -641,7 +645,9 @@ public class AlertsControllerTest {
         Date today = new Date();
         Date alertDate = new Date(today.getTime()-86400000);
         previousAlert.setDate(alertDate);
-        when(alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(projectId,currentMetric.getExternalId(),"metric",AlertType.TRESPASSED_THRESHOLD)).thenReturn(previousAlert);
+        when(alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                projectId,currentMetric.getExternalId(),"metric",AlertType.TRESPASSED_THRESHOLD, alertsController.getTodayStartOfDayInstant()))
+                .thenReturn(previousAlert);
 
         //create previous evaluations
         DTOMetricEvaluation previousEval = domainObjectsBuilder.buildDTOMetric();
@@ -657,7 +663,8 @@ public class AlertsControllerTest {
         alertsController.shouldCreateMetricAlert(currentMetricEval, value, projectId);
 
         // Then
-        verify(alertRepository, times (1)).findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(projectId,currentMetric.getExternalId(),"metric",AlertType.TRESPASSED_THRESHOLD);
+        verify(alertRepository, times (1)).findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                projectId,currentMetric.getExternalId(),"metric",AlertType.TRESPASSED_THRESHOLD, alertsController.getTodayStartOfDayInstant());
         verify(metricRepository, times(2)).findByExternalIdAndProjectId(currentMetricEval.getId(), projectId);
         verify(metricCategoryRepository, times(1)).findAllByName(currentMetric.getCategoryName());
         ArgumentCaptor<Alert> alertArgumentCaptor = ArgumentCaptor.forClass(Alert.class);
@@ -721,18 +728,22 @@ public class AlertsControllerTest {
         upgradeAlert.setDate(upgradeAlertDate);
         downgradeAlert.setDate(downgradeAlertDate);
 
-        when(alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(metric.getProject().getId(),
-                metric.getExternalId(), "metric", AlertType.CATEGORY_UPGRADE)).thenReturn(upgradeAlert);
-        when(alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(metric.getProject().getId(),
-                metric.getExternalId(), "metric", AlertType.CATEGORY_DOWNGRADE)).thenReturn(downgradeAlert);
+        when(alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                metric.getProject().getId(), metric.getExternalId(), "metric", AlertType.CATEGORY_UPGRADE, alertsController.getTodayStartOfDayInstant()))
+                .thenReturn(upgradeAlert);
+        when(alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                metric.getProject().getId(), metric.getExternalId(), "metric", AlertType.CATEGORY_DOWNGRADE, alertsController.getTodayStartOfDayInstant()))
+                .thenReturn(downgradeAlert);
 
 
         // When
         alertsController.shouldCreateMetricAlert(metricEval, metricEval.getValue(), projectId);
 
         // Then
-        verify(alertRepository, times (1)).findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(projectId,metric.getExternalId(),"metric",AlertType.CATEGORY_DOWNGRADE);
-        verify(alertRepository, times (1)).findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(projectId,metric.getExternalId(),"metric",AlertType.CATEGORY_UPGRADE);
+        verify(alertRepository, times (1)).findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                projectId,metric.getExternalId(),"metric",AlertType.CATEGORY_DOWNGRADE, alertsController.getTodayStartOfDayInstant());
+        verify(alertRepository, times (1)).findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                projectId,metric.getExternalId(),"metric",AlertType.CATEGORY_UPGRADE, alertsController.getTodayStartOfDayInstant());
         verify(metricRepository, times(2)).findByExternalIdAndProjectId(metricEval.getId(), projectId);
         verify(metricCategoryRepository, times(1)).findAllByName(metric.getCategoryName());
         ArgumentCaptor<Alert> alertArgumentCaptor = ArgumentCaptor.forClass(Alert.class);

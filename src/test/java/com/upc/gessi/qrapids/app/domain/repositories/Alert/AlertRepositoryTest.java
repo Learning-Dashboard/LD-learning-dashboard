@@ -26,6 +26,7 @@ public class AlertRepositoryTest {
     private TestEntityManager entityManager;
     @Autowired
     private AlertRepository alertRepository;
+
     @Test
     public void findAlertById() {
         // Given
@@ -76,29 +77,44 @@ public class AlertRepositoryTest {
     }
 
     @Test
-    public void findAllByProjectIdAndAffectedIdAndAffectedTypeTypeOrderByDateDesc(){
+    public void findAllByProjectIdAndAffectedIdAndAffectedTypeTypeAndDateLessThanOrderByDateDesc(){
         //Given
         Project project = new Project("test_project3", "TestProject3", "", null, true, null,null,false);
         entityManager.persistAndFlush(project);
         Long projectId = project.getId();
+        LocalDateTime yesterday = LocalDate.now().minusDays(1).atStartOfDay();
 
         Alert alert = new Alert(0.30f,  0.50f,  AlertType.TRESPASSED_THRESHOLD,  project,  "badBacklogManagement", "metric", null, null);
         Alert alert2 = new Alert(0.00f,  0.50f,  AlertType.ALERT_NOT_TREATED,  project,  "badBacklogManagement", "metric", null, null);
-        Alert alert3 = new Alert(0.00f,  0.50f,  AlertType.ALERT_NOT_TREATED,  project,  "badBacklogManagement", "factors", null, null);
-        Alert alert4 = new Alert(0.30f,  0.33f,  AlertType.TRESPASSED_THRESHOLD,  project,  "acceptance_criteria_check", "metric", null, null);
+
+        Alert alert3 = new Alert(0.00f,  0.50f,  AlertType.ALERT_NOT_TREATED,  project,  "badBacklogManagement", "metric", null, null);
+        alert3.setDate(Date.from(yesterday.atZone(ZoneId.systemDefault()).toInstant()));
+        Alert alert4 = new Alert(0.00f,  0.50f,  AlertType.ALERT_NOT_TREATED,  project,  "badBacklogManagement", "metric", null, null);
+        alert4.setDate(Date.from(yesterday.atZone(ZoneId.systemDefault()).toInstant()));
+
+        Alert alert5 = new Alert(0.00f,  0.50f,  AlertType.ALERT_NOT_TREATED,  project,  "badBacklogManagement", "factors", null, null);
+        Alert alert6 = new Alert(0.30f,  0.33f,  AlertType.TRESPASSED_THRESHOLD,  project,  "acceptance_criteria_check", "metric", null, null);
+
         entityManager.persistAndFlush(alert);
         entityManager.persistAndFlush(alert2);
         entityManager.persistAndFlush(alert3);
         entityManager.persistAndFlush(alert4);
+        entityManager.persistAndFlush(alert5);
+        entityManager.persistAndFlush(alert6);
+
+        LocalDateTime today = LocalDate.now().atStartOfDay();
+        Date dateToday = Date.from(today.atZone(ZoneId.systemDefault()).toInstant());
 
         //When
-        Alert alertFound = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(projectId, "badBacklogManagement", "metric", AlertType.TRESPASSED_THRESHOLD);
+        Alert alertFound = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                projectId, "badBacklogManagement", "metric", AlertType.ALERT_NOT_TREATED, dateToday);
 
         //Then
         assertEquals(alertFound.getProject().getId(),projectId);
         assertEquals(alertFound.getAffectedId(),"badBacklogManagement");
         assertEquals(alertFound.getAffectedType(),"metric");
-        assertEquals(alertFound.getType(),AlertType.TRESPASSED_THRESHOLD);
+        assertEquals(alertFound.getType(),AlertType.ALERT_NOT_TREATED);
+        assertEquals(alertFound.getId(), alert4.getId());
     }
 
     @Test
