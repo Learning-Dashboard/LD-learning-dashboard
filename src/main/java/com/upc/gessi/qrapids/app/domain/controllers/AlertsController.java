@@ -363,7 +363,7 @@ public class AlertsController {
         Alert alreadyCreated_TT = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateGreaterThanEqualAndDateLessThan(
                 factor.getProject().getId(), factor.getExternalId(), "factor", AlertType.TRESPASSED_THRESHOLD, todayStartDate, now);
 
-        if (value < factor.getThreshold()){
+        if (factor.getThreshold() != null && value < factor.getThreshold()){
             Alert previousThresholdAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(factor.getProject().getId(),
                     factor.getExternalId(), "factor", AlertType.TRESPASSED_THRESHOLD);
             Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(factor.getProject().getId(),
@@ -371,7 +371,7 @@ public class AlertsController {
 
             Alert lastAlert = obtainMostRecentAlert(previousThresholdAlert, previousNotTreatedAlert);
 
-            if (lastAlert!=null){
+            if (lastAlert != null){
                 Date lastAlertDate = lastAlert.getDate();
 
                 LocalDate fromDate = lastAlertDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
@@ -532,7 +532,7 @@ public class AlertsController {
         Alert alreadyCreated_TT = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateGreaterThanEqualAndDateLessThan(
                 strategicIndicator.getProject().getId(), strategicIndicator.getExternalId(), "indicator", AlertType.TRESPASSED_THRESHOLD, todayStartDate, now);
 
-        if (value < strategicIndicator.getThreshold()){
+        if (strategicIndicator.getThreshold() != null && value < strategicIndicator.getThreshold()){
             Alert previousThresholdAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(strategicIndicator.getProject().getId(),
                     strategicIndicator.getExternalId(), "indicator", AlertType.TRESPASSED_THRESHOLD);
             Alert previousNotTreatedAlert = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeOrderByIdDesc(strategicIndicator.getProject().getId(),
@@ -540,7 +540,7 @@ public class AlertsController {
 
             Alert lastAlert = obtainMostRecentAlert(previousThresholdAlert, previousNotTreatedAlert);
 
-            if (lastAlert!=null){
+            if (lastAlert != null){
                 Date lastAlertDate = lastAlert.getDate();
 
                 LocalDate fromDate = lastAlertDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
