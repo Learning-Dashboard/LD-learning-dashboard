@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -49,11 +50,10 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 	}
 
 	@Override
-	protected void configure( HttpSecurity http ) throws Exception {
+	protected void configure(HttpSecurity http) throws Exception {
 
-		String public_and_secure = ( this.securityEnable )? "/resources/**" : "/**";
-        String public_api = ( this.apiEnable )?  "/api/**" : "/fonts/**";
-
+		String publicAndSecure = (this.securityEnable) ? "/resources/**" : "/**";
+		String publicApi = (this.apiEnable) ? "/api/**" : "/fonts/**";
 
 		http.cors().and().csrf().disable().authorizeRequests()
 
@@ -62,20 +62,21 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 				.antMatchers(HttpMethod.GET, LOGIN_VIEW_URL).permitAll()
 				.antMatchers(PUBLIC_MATCHERS).permitAll()
 
-                .antMatchers(public_api).permitAll()
-				.antMatchers(public_and_secure).permitAll()
+				.antMatchers(publicAndSecure).permitAll()
+
+				.antMatchers(publicApi).hasAuthority("X-API-KEY") // Require API key for /api/**
 
 				.anyRequest().authenticated()
 				.and()
 
-				.addFilter(new JWTAuthenticationFilter(authenticationManager(),usersController))
-				.addFilter(new JWTAuthorizationFilter(authenticationManager(), userRepository, routeRepository ))
+				.addFilterBefore(new ApiKeyAuthFilter(userRepository), UsernamePasswordAuthenticationFilter.class) // Add API key filter before other filters
+				.addFilter(new JWTAuthenticationFilter(authenticationManager(), usersController))
+				.addFilter(new JWTAuthorizationFilter(authenticationManager(), userRepository, routeRepository))
 
 				// this disables session creation on Spring Security
 				.sessionManagement().enableSessionUrlRewriting(false)
 				.and()
 				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-
 	}
 
 	@Override
