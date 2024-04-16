@@ -2,7 +2,6 @@ package com.upc.gessi.qrapids.app.config.security;
 
 import com.upc.gessi.qrapids.app.domain.models.AppUser;
 import com.upc.gessi.qrapids.app.domain.repositories.AppUser.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -13,11 +12,13 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public class ApiKeyAuthFilter extends OncePerRequestFilter {
-    private String apiKey = "apiKey_";
-    private final UserRepository m_userRepository;
 
-    public ApiKeyAuthFilter(UserRepository userRepository) {
+    private final UserRepository m_userRepository;
+    private final boolean m_enable;
+
+    public ApiKeyAuthFilter(UserRepository userRepository, boolean enable) {
         this.m_userRepository = userRepository;
+        this.m_enable = enable;
     }
 
     @Override
@@ -27,15 +28,17 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         String requestUri = request.getRequestURI();
 
         // Check if the URI contains "/api"
-        if (requestUri.contains("/api")) {
+        if (requestUri.contains("/api") && this.m_enable) {
 
             // Get the API key and secret from request headers
             String requestApiKey = request.getHeader("X-API-KEY");
 
             if (requestApiKey != null) {
 
+                //Get the username from the request api key
                 String username = requestApiKey.substring("apiKey_".length());
 
+                //Get the user with the username to check if exists
                 AppUser appUser = this.m_userRepository.findByUsername(username);
 
                 if (appUser == null) {
@@ -43,20 +46,6 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
                     response.getWriter().write("Unauthorized");
                 } else {
                     filterChain.doFilter(request, response);
-
-                    /*
-                    apiKey += username;
-
-                    // Validate the key and secret
-                    if (apiKey.equals(requestApiKey)) {
-                        // Continue processing the request
-                        filterChain.doFilter(request, response);
-                    } else {
-                        // Reject the request and send an unauthorized error
-                        response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                        response.getWriter().write("Unauthorized");
-                    }
-                    */
                 }
             }
             else {

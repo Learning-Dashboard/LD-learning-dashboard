@@ -44,6 +44,9 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     @Value("${security.api.enable}")
     private boolean apiEnable;
 
+	@Value("${security.apiKey}")
+	private boolean apiKeyEnable;
+
 	public WebSecurity(UserDetailsService userDetailsService, BCryptPasswordEncoder bCryptPasswordEncoder) {
 		this.userDetailsService = userDetailsService;
 		this.bCryptPasswordEncoder = bCryptPasswordEncoder;
@@ -69,7 +72,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 				.anyRequest().authenticated()
 				.and()
 
-				.addFilterBefore(new ApiKeyAuthFilter(userRepository), UsernamePasswordAuthenticationFilter.class) // Add API key filter before other filters
+				.addFilterBefore(new ApiKeyAuthFilter(userRepository, this.apiKeyEnable), UsernamePasswordAuthenticationFilter.class) // Add API key filter before other filters
 				.addFilter(new JWTAuthenticationFilter(authenticationManager(), usersController))
 				.addFilter(new JWTAuthorizationFilter(authenticationManager(), userRepository, routeRepository))
 
