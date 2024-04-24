@@ -34,6 +34,9 @@ function getData() {
     jQuery.ajax({
         dataType: "json",
         url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -115,6 +118,9 @@ function sortDataAlphabetically (data) {
 function getFactorsCategories() {
     jQuery.ajax({
         url: "../api/factors/categories",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         type: "GET",
         async: true,
         success: function (response) {
@@ -127,6 +133,9 @@ function getFactorsCategories() {
 function getFactorList() {
     jQuery.ajax({
         url: "../api/qualityFactors",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         type: "GET",
         async: true,
         success: function (dataF) {

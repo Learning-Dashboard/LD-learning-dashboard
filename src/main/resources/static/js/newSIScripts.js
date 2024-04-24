@@ -14,6 +14,9 @@ function moveFactors() {
 var profileId = sessionStorage.getItem("profile_id");
 $.ajax({
     url: "../api/qualityFactors/metrics/current?profile="+profileId,
+    headers: {
+        'X-API-KEY': 'apiKey_admin'
+    },
     type: "GET",
     success: function(data) {
         for(i = 0; i < data.length; ++i) {
@@ -41,6 +44,9 @@ if (window.location.href.includes("/EditStrategicIndicators/")) {
 
     $.ajax({
         url: "../api/strategicIndicators/" + id,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         type: "GET",
         success: function(data) {
             console.log(data);
@@ -84,6 +90,9 @@ $(function () {
 $('#resetCategories').click(function () {
     $.ajax({
         url: '../api/categories',
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         type: "DELETE",
         success: function() {
             location.reload();
@@ -110,6 +119,9 @@ $('#newSI').click(function () {
 
         $.ajax({
             url: postUrl,
+            headers: {
+                'X-API-KEY': 'apiKey_admin'
+            },
             data: formData,
             type: httpMethod,
             contentType: false,

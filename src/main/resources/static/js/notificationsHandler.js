@@ -19,6 +19,9 @@ function checkAlertsPending(){
     jQuery.ajax({
         dataType: "json",
         url: serverUrl+'/api/alerts/countNew?profile=' + sessionStorage.getItem('profile_id'),
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,

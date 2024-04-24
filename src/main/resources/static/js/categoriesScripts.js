@@ -101,6 +101,9 @@ $('#accept').click(function () {
     else {
         $.ajax({
             url: '../api/categories',
+            headers: {
+                'X-API-KEY': 'apiKey_admin'
+            },
             data: formData,
             type: "POST",
             contentType: false,

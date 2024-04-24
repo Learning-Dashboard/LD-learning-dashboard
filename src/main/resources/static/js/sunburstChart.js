@@ -19,6 +19,9 @@ function loadData() {
         dataType: "json",
         type: "GET",
         url : url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         async: true,
         success: function (data) {
             makeChart(data);

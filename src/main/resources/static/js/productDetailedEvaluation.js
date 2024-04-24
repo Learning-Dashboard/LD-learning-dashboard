@@ -26,6 +26,9 @@ function buildSelector() {
 	jQuery.ajax({
         dataType: "json",
         url: urlProducts,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -65,6 +68,9 @@ function getData() {
     jQuery.ajax({
         dataType: "json",
         url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -94,20 +100,34 @@ function getCategories() {
     if (serverUrl) {
         url = serverUrl + url;
     }
-    $.getJSON(url).then (function(cat) {
-        categories.push({
-            name: cat[0].name, // high category
-            color: cat[0].color,
-            upperThreshold: 1,
-        });
-        for (var i = 1; i < cat.length; i++) {
+
+    $.ajax({
+        url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
+        method: "GET",
+        dataType: "json",
+        success: function(cat) {
             categories.push({
-                name: cat[i].name, // high category
-                color: cat[i].color,
-                upperThreshold: categories[i-1].upperThreshold - 1/cat.length,
+                name: cat[0].name,
+                color: cat[0].color,
+                upperThreshold: 1,
             });
+
+            for (var i = 1; i < cat.length; i++) {
+                categories.push({
+                    name: cat[i].name,
+                    color: cat[i].color,
+                    upperThreshold: categories[i-1].upperThreshold - 1/cat.length,
+                });
+            }
+            drawChart(categories); // Pass categories array to drawChart function
+        },
+        error: function(xhr, textStatus, errorThrown) {
+            // Handle error
+            console.error("Error fetching categories:", errorThrown);
         }
-        drawChart();
     });
 }
 

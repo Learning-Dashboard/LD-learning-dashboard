@@ -40,15 +40,20 @@ var options = {
 var HeatMap = new ApexCharts(document.querySelector("#HeatMap"), options);
 HeatMap.render();
 
-
 function getPhasesList () {
     var serverUrl = sessionStorage.getItem("serverUrl");
     var url = "/api/phases";
     if (serverUrl) {
         url = serverUrl + url;
     }
-    $.getJSON(url)
-        .then (function(phases) {
+    $.ajax({
+        url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
+        method: "GET",
+        dataType: "json",
+        success: function(phases) {
             if (phases.length > 0) {
                 phases.forEach(function (ph) {
                     p.push({
@@ -61,7 +66,12 @@ function getPhasesList () {
             } else {
                 warningUtils("Warning", "No information about phases of this project.");
             }
-        });
+        },
+        error: function(xhr, textStatus, errorThrown) {
+            // Handle error
+            console.error("Error fetching phases:", errorThrown);
+        }
+    });
 }
 
 function checkCategories() {
@@ -70,8 +80,14 @@ function checkCategories() {
     if (serverUrl) {
         url = serverUrl + url;
     }
-    $.getJSON(url)
-        .then (function(categories) {
+    $.ajax({
+        url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
+        method: "GET",
+        dataType: "json",
+        success: function(categories) {
             if (categories.length === 0) {
                 warningUtils("Warning", "You need to define Strategic Indicator categories in order to see the heatmap correctly. " +
                     "Please, go to the Categories section of the Configuration menu and define them.");
@@ -110,10 +126,13 @@ function checkCategories() {
                     }
                 });
             }
-        });
+        },
+        error: function(xhr, textStatus, errorThrown) {
+            // Handle error
+            console.error("Error fetching categories:", errorThrown);
+        }
+    });
 }
-
-
 
 function getData(phases) {
     var today = new Date();
@@ -126,8 +145,14 @@ function getData(phases) {
     if (serverUrl) {
         url = serverUrl + url;
     }
-    $.getJSON(url + "&from=" + phases[0].from + "&to=" + todayTextDate)
-        .then (function(data) {
+    $.ajax({
+        url: url + "&from=" + phases[0].from + "&to=" + todayTextDate,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
+        method: "GET",
+        dataType: "json",
+        success: function(data) {
 
             console.log("getData");
             console.log(data);
@@ -137,7 +162,8 @@ function getData(phases) {
             if (data.length === 0) { // when there is NO historical data for phases period
                 var siData = [];
                 addNoDataStrategicIndicators (phases, siData);
-            } else { // when there is historical data
+            }
+            else { // when there is historical data
                 var aux = [{cat: "No data", val:-1}];
                 var values = [];
                 var currentSI = data[0].name; // take first SI from hist. data
@@ -226,10 +252,13 @@ function getData(phases) {
                 addNoDataStrategicIndicators(phases, siData);
                 drawHeatmap(phases);
             }
+        },
+        error: function(xhr, textStatus, errorThrown) {
+            // Handle error
+            console.error("Error fetching phase data:", errorThrown);
         }
-    );
+    });
 }
-
 function addNoDataStrategicIndicators (phases, siData) {
     var profileId = sessionStorage.getItem("profile_id");
     var serverUrl = sessionStorage.getItem("serverUrl");
@@ -237,8 +266,14 @@ function addNoDataStrategicIndicators (phases, siData) {
     if (serverUrl) {
         url = serverUrl + url;
     }
-    $.getJSON(url)
-        .then (function(data) {
+    $.ajax({
+        url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
+        method: "GET",
+        dataType: "json",
+        success: function(phases) {
             for (var i = 0; i < data.length; i++) {
                 if (!siData.includes(data[i].name)){
                     var values = [];
@@ -254,8 +289,12 @@ function addNoDataStrategicIndicators (phases, siData) {
             console.log("new serie: ");
             console.log(s);
             drawHeatmap(phases);
+        },
+        error: function(xhr, textStatus, errorThrown) {
+            // Handle error
+            console.error("Error fetching phases:", errorThrown);
         }
-    );
+    });
 }
 
 function drawHeatmap(phases) {

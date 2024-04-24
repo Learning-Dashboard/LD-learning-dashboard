@@ -8,6 +8,9 @@ function getStrategicIndicators() {
     jQuery.ajax({
         dataType: "json",
         url: '../api/strategicIndicators/current?profile='+profileId,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -24,6 +27,9 @@ function getFactors(strategicIndicators) {
     jQuery.ajax({
         dataType: "json",
         url: '../api/strategicIndicators/qualityFactors/current?profile='+profileId,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -196,6 +202,9 @@ function newFeedback(strategicIndicator, newvalue){
 
     $.ajax({
         url: '../api/strategicIndicators/' + strategicIndicator.dbId + "/feedback",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         data: formData,
         type: "POST",
         contentType: false,

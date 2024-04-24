@@ -31,6 +31,9 @@ if (!(serverUrl = sessionStorage.getItem("serverUrl"))) {
     jQuery.ajax({
         dataType: "json",
         url: "../api/serverUrl",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: false,
@@ -71,6 +74,9 @@ function getIfUserIsAdmin() {
         jQuery.ajax({
             dataType: "json",
             url: "../api/isAdmin?token="+token,
+            headers: {
+                'X-API-KEY': 'apiKey_admin'
+            },
             cache: false,
             type: "GET",
             async: false,
@@ -90,6 +96,9 @@ function getUserName () {
     jQuery.ajax({
         dataType: "json",
         url: serverUrl + "/api/me",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -111,6 +120,9 @@ function checkProducts () {
     jQuery.ajax({
         dataType: "json",
         url: serverUrl + "/api/products",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -127,6 +139,9 @@ function checkPhases () {
     jQuery.ajax({
         dataType: "json",
         url: serverUrl + "/api/phases",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -777,6 +792,9 @@ function fillupdateModal() {
     jQuery.ajax({
         dataType: "json",
         url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,

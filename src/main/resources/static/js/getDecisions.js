@@ -4,6 +4,9 @@ function getDecisions () {
     jQuery.ajax({
         dataType: "json",
         url: "../api/decisions?qrs=true",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         data: {
             "from": $('#datepickerFrom').val(),
             "to": $('#datepickerTo').val()

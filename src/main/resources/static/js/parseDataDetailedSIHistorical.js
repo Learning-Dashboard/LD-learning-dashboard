@@ -28,6 +28,9 @@ function getData() {
     jQuery.ajax({
         dataType: "json",
         url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         data: {
             "from": $('#datepickerFrom').val(),
             "to": $('#datepickerTo').val()
@@ -97,6 +100,9 @@ function getQualityModel () {
         dataType: "json",
         type: "GET",
         url : "../api/strategicIndicators/qualityModel?profile="+profileId,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         async: false,
         success: function (data) {
             data.forEach(function (strategicIndicator) {
@@ -154,6 +160,9 @@ function sortDataAlphabetically (data) {
 function getFactorsCategories () {
     jQuery.ajax({
         url: "../api/factors/categories",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         type: "GET",
         async: true,
         success: function (response) {

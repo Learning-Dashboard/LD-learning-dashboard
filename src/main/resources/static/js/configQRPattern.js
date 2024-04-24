@@ -18,6 +18,9 @@ function buildTree() {
     jQuery.ajax({
         dataType: "json",
         url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: false,
@@ -121,6 +124,9 @@ function getChosenPattern(currentPatternId) {
     jQuery.ajax({
         dataType: "json",
         url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -364,6 +370,9 @@ function getChosenClassifier(currentClassifierId) {
     jQuery.ajax({
         dataType: "json",
         url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -698,6 +707,9 @@ function savePattern() {
 
         $.ajax({
             url: url,
+            headers: {
+                'X-API-KEY': 'apiKey_admin'
+            },
             data: formData,
             type: saveMethod,
             contentType: false,
@@ -756,6 +768,9 @@ function deletePattern() {
 
         $.ajax({
             url: url,
+            headers: {
+                'X-API-KEY': 'apiKey_admin'
+            },
             type: "DELETE",
             contentType: false,
             processData: false,
@@ -894,6 +909,9 @@ function saveClassifier() {
 
             $.ajax({
                 url: url,
+                headers: {
+                    'X-API-KEY': 'apiKey_' + sessionStorage.getItem("userName")
+                },
                 data: formData,
                 type: saveMethod,
                 contentType: false,
@@ -1005,6 +1023,9 @@ function deleteClassifier() {
 
             $.ajax({
                 url: url,
+                headers: {
+                    'X-API-KEY': 'apiKey_' + sessionStorage.getItem("userName")
+                },
                 type: "DELETE",
                 contentType: false,
                 processData: false,
@@ -1063,6 +1084,9 @@ function fillParameterMetricSelect(parameterMetricSelect, selectedMetricId) {
     jQuery.ajax({
         dataType: "json",
         url: urlMetrics,
+        headers: {
+            'X-API-KEY': 'apiKey_' + sessionStorage.getItem("userName")
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -1127,6 +1151,9 @@ function buildTreeMetrics() {
     jQuery.ajax({
         dataType: "json",
         url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_' + sessionStorage.getItem("userName")
+        },
         cache: false,
         type: "GET",
         async: false,
@@ -1171,6 +1198,9 @@ function getChosenMetric(currentMetricId) {
     jQuery.ajax({
         dataType: "json",
         url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_' + sessionStorage.getItem("userName")
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -1295,6 +1325,9 @@ function saveMetric() {
 
         $.ajax({
             url: url,
+            headers: {
+                'X-API-KEY': 'apiKey_' + sessionStorage.getItem("userName")
+            },
             data: formData,
             type: saveMethod_metric,
             contentType: false,
@@ -1344,6 +1377,9 @@ function deleteMetric() {
 
         $.ajax({
             url: url,
+            headers: {
+                'X-API-KEY': 'apiKey_' + sessionStorage.getItem("userName")
+            },
             type: "DELETE",
             contentType: false,
             processData: false,

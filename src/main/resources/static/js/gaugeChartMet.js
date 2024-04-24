@@ -95,6 +95,9 @@ function getData(width, height) {
     jQuery.ajax({
         dataType: "json",
         url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: false,
@@ -103,6 +106,9 @@ function getData(width, height) {
             jQuery.ajax({
                 dataType: "json",
                 url: "../api/metrics",
+                headers: {
+                    'X-API-KEY': 'apiKey_admin'
+                },
                 cache: false,
                 type: "GET",
                 async: false,
@@ -133,6 +139,9 @@ function getStudents(data, width, height) {
     jQuery.ajax({
         dataType: "json",
         url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: false,
@@ -152,6 +161,9 @@ function getFactors(data, width, height) {
     jQuery.ajax({
         dataType: "json",
         url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: false,
@@ -208,6 +220,9 @@ function sortFactors (factors) {
 function getMetricsCategories (data, width, height) {
     jQuery.ajax({
         url: "../api/metrics/categories",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         type: "GET",
         async: false,
         success: function (categories) {
@@ -241,6 +256,9 @@ function getCurrentProject() {
     jQuery.ajax({
         dataType: "json",
         url: urlp,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: false,

@@ -6,9 +6,13 @@ app.controller('TablesCtrl', function($scope, $http) {
 
     this.$onInit = function () {
         var url = "../api/metrics/list";
+
         $http({
             method: "GET",
-            url: url
+            url: url,
+            headers: {
+                'X-API-KEY': 'apiKey_admin'
+            }
         }).then(function mySuccess(response) {
             $scope.metricCategory = response.data;
         })
@@ -18,9 +22,13 @@ app.controller('TablesCtrl', function($scope, $http) {
         console.log("IN getMetricsConfig");
 
         var url = "../api/metrics";
+
         $http({
             method: "GET",
-            url: url
+            url: url,
+            headers: {
+                'X-API-KEY': 'apiKey_admin'
+            }
         }).then(function mySuccess(response) {
             var data = [];
             response.data.forEach(function (metric) {
@@ -55,6 +63,9 @@ app.controller('TablesCtrl', function($scope, $http) {
 
         $.ajax({
             url: "../api/metrics/"+id,
+            headers: {
+                'X-API-KEY': 'apiKey_admin'
+            },
             data: formData,
             type: "PUT",
             contentType: false,
@@ -87,8 +98,12 @@ app.controller('TablesCtrl', function($scope, $http) {
                     formData.append("url", url);
                     formData.append("categoryName", categoryName);
                     ++cont;
+
                     $.ajax({
                         url: "../api/metrics/" + id,
+                        headers: {
+                            'X-API-KEY': 'apiKey_admin'
+                        },
                         data: formData,
                         type: "PUT",
                         contentType: false,

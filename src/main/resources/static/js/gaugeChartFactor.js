@@ -23,6 +23,9 @@ function getDataFactors(width, height, chartHyperlinked, color) {
     jQuery.ajax({
         dataType: "json",
         url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -42,6 +45,9 @@ function getDataFactors(width, height, chartHyperlinked, color) {
 function getFactorList(data, width, height, chartHyperlinked, color) {
     jQuery.ajax({
         url: "../api/qualityFactors",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         type: "GET",
         async: true,
         success: function (dataF) {
@@ -54,6 +60,9 @@ function getFactorList(data, width, height, chartHyperlinked, color) {
 function getFactorsCat (data, width, height, chartHyperlinked, color) {
     jQuery.ajax({
         url: "../api/factors/categories",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         type: "GET",
         async: true,
         success: function (categories) {

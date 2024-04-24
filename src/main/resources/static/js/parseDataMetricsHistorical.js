@@ -103,6 +103,9 @@ function getCurrentProjects() {
     jQuery.ajax({
         dataType: "json",
         url: urlp,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -131,6 +134,9 @@ function getDatabyFactor() {
     jQuery.ajax({
         dataType: "json",
         url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         data: {
             "from": $('#datepickerFrom').val(),
             "to": $('#datepickerTo').val()
@@ -268,6 +274,9 @@ function getDataStudents() {
     jQuery.ajax({
         dataType: "json",
         url: "../api/metrics/students/historical",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         data: {
             "from": $('#datepickerFrom').val(),
             "to": $('#datepickerTo').val()
@@ -418,6 +427,9 @@ function sortDataByFactor(data) {
 function getMetricsCategories () {
     jQuery.ajax({
         url: "../api/metrics/categories",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         type: "GET",
         async: true,
         success: function (response) {
@@ -431,6 +443,9 @@ function getMetricsDB() {
     jQuery.ajax({
         dataType: "json",
         url: "../api/metrics",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: false,
@@ -449,6 +464,9 @@ function getFactors() {
     jQuery.ajax({
         dataType: "json",
         url: factorUrl,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: false,

@@ -16,6 +16,9 @@ function getAssessSIUrl () {
     jQuery.ajax({
         dataType: "json",
         url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -37,6 +40,9 @@ function buildSIList() {
     jQuery.ajax({
         dataType: "json",
         url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -76,6 +82,9 @@ function clickOnTree(e){
     jQuery.ajax({
         dataType: "json",
         url: postUrl,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -171,6 +180,9 @@ function loadFactors (show) {
     // get factors from DB
     $.ajax({
         url: "../api/qualityFactors",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         type: "GET",
         async: true,
         success: function(data) {

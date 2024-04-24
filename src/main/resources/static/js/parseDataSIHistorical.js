@@ -31,6 +31,9 @@ function getData() {
     jQuery.ajax({
         dataType: "json",
         url: "../api/strategicIndicators/historical?profile="+profileId,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         data: {
             "from": $('#datepickerFrom').val(),
             "to": $('#datepickerTo').val()
@@ -136,6 +139,9 @@ function getQualityModel () {
         dataType: "json",
         type: "GET",
         url : "../api/strategicIndicators/qualityModel?profile="+profileId,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         async: false,
         success: function (data) {
             data.forEach(function (strategicIndicator) {

@@ -19,6 +19,9 @@ function loadData() {
         dataType: "json",
         type: "GET",
         url : url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         async: true,
         success: function (data) {
             buildTree(data);
@@ -178,6 +181,9 @@ function getAndShowElement (url) {
         dataType: "json",
         type: "GET",
         url : url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         async: true,
         success: function (element) {
             $("#qualityModelElementModalTitle").text(element.name);

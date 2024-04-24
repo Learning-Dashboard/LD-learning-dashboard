@@ -33,6 +33,9 @@ function getData() {
     jQuery.ajax({
         dataType: "json",
         url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -110,6 +113,9 @@ function sortDataAlphabetically (data) {
 function getMetricsCategories() {
     jQuery.ajax({
         url: "../api/metrics/categories",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         type: "GET",
         async: true,
         success: function (response) {
@@ -123,6 +129,9 @@ function getMetricsWithCategory(){
     $.ajax({
         dataType: "json",
         url: "../api/metrics",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,

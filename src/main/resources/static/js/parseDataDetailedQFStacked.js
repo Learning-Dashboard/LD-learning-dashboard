@@ -44,6 +44,9 @@ function getData() {
     jQuery.ajax({
         dataType: "json",
         url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -141,6 +144,9 @@ function sortDataAlphabetically (data) {
 function getMetricsCategories() {
     jQuery.ajax({
         url: "../api/metrics/categories",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         type: "GET",
         async: true,
         success: function (response) {
@@ -155,15 +161,27 @@ function getCategories() {
     if (serverUrl) {
         url = serverUrl + url;
     }
-    $.getJSON(url).then (function(cat) {
-        categories.push({
-            color: cat[0].color, // high category
-            pos: cat[1].upperThreshold,
-        });
-        categories.push({
-            color: cat[cat.length-1].color, // low category
-            pos: cat[cat.length-1].upperThreshold,
-        });
+    $.ajax({
+        url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
+        method: "GET",
+        dataType: "json",
+        success: function(cat) {
+            categories.push({
+                color: cat[0].color, // high category
+                pos: cat[1].upperThreshold,
+            });
+            categories.push({
+                color: cat[cat.length-1].color, // low category
+                pos: cat[cat.length-1].upperThreshold,
+            });
+        },
+        error: function(xhr, textStatus, errorThrown) {
+            // Handle error
+            console.error("Error fetching phases:", errorThrown);
+        }
     });
 }
 
@@ -171,6 +189,9 @@ function getMetricsWithCategory(){
     $.ajax({
         dataType: "json",
         url: "../api/metrics",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,

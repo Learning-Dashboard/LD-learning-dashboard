@@ -45,6 +45,9 @@ function getData() {
         jQuery.ajax({
             dataType: "json",
             url: urlpred,
+            headers: {
+                'X-API-KEY': 'apiKey_admin'
+            },
             data: {
                 "technique": technique,
                 "horizon": diffDays
@@ -62,6 +65,9 @@ function getData() {
                 jQuery.ajax({
                     dataType: "json",
                     url: urlhist,
+                    headers: {
+                        'X-API-KEY': 'apiKey_admin'
+                    },
                     data: {
                         "from": parseDate(dateFrom),
                         "to": parseDate(dateC)
@@ -202,6 +208,9 @@ function sortDataAlphabetically (data) {
 function getFactorsCategories () {
     jQuery.ajax({
         url: "../api/factors/categories",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         type: "GET",
         async: true,
         success: function (response) {

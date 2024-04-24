@@ -21,6 +21,9 @@ function getUserName () {
     jQuery.ajax({
         dataType: "json",
         url: "../api/me",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,

@@ -18,6 +18,9 @@ function getMetricsWithCategory(){
     $.ajax({
         dataType: "json",
         url: "../api/metrics",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -32,6 +35,9 @@ function getAllMetrics(){
     var url = "../api/metrics/current?profile="+profileId;
     $.ajax({
         url : url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         type: "GET",
         success: function (response) {
             metrics = response;
@@ -44,6 +50,9 @@ function getMetricsCategoriesAndShow () {
     var url = "../api/metrics/categories";
     $.ajax({
         url : url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         type: "GET",
         success: function (response) {
             metricCats = removeSpaces(response);
@@ -56,6 +65,9 @@ function getMetricsCategories (titles, ids, labels, values) {
     var url = "../api/metrics/categories";
     $.ajax({
         url : url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         type: "GET",
         success: function (response) {
             metricCats = removeSpaces(response)
@@ -68,6 +80,9 @@ function getFactorsCategories (titles, ids, labels, values) {
     var url = "../api/factors/categories";
     $.ajax({
         url : url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         type: "GET",
         success: function (response) {
             factorCats= removeSpaces(response)
@@ -79,6 +94,9 @@ function getFactorsCategories (titles, ids, labels, values) {
 function getFactorsList(titles, ids, labels, values) {
     jQuery.ajax({
         url: "../api/qualityFactors",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         type: "GET",
         async: false,
         success: function (dataF) {
@@ -202,6 +220,9 @@ function getDetailedStrategicIndicators () {
     jQuery.ajax({
         dataType: "json",
         url: "../api/strategicIndicators/qualityFactors/current?profile="+profileId,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -361,6 +382,9 @@ function getFactors () {
     jQuery.ajax({
         dataType: "json",
         url: "../api/qualityFactors/metrics/current?profile="+profileId,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,
@@ -607,6 +631,9 @@ $('#apply').click(function () {
 
     $.ajax({
         url: "../api/qualityFactors/simulate?date="+ date + "&profile="+profileId,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         data: JSON.stringify(newMetrics),
         type: "POST",
         contentType: 'application/json',

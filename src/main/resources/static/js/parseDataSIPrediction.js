@@ -39,6 +39,9 @@ function getData() {
         jQuery.ajax({
             dataType: "json",
             url: "../api/strategicIndicators/prediction?profile="+profileId,
+            headers: {
+                'X-API-KEY': 'apiKey_admin'
+            },
             data: {
                 "technique": technique,
                 "horizon": diffDays
@@ -55,6 +58,9 @@ function getData() {
                 jQuery.ajax({
                     dataType: "json",
                     url: "../api/strategicIndicators/historical?profile="+profileId,
+                    headers: {
+                        'X-API-KEY': 'apiKey_admin'
+                    },
                     data: {
                         "from": parseDate(dateFrom),
                         "to": parseDate(dateC)
