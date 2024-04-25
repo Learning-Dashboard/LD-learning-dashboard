@@ -27,6 +27,9 @@ function getJasperserverInfo() {
             $.ajax({
                 type: "POST",
                 url: jasperserverURL + "/rest/login",
+                headers: {
+                    'X-API-KEY': 'apiKey_admin'
+                },
                 data: {
                     j_username: jasperserverUser,
                     j_password: jasperserverPassword
@@ -45,6 +48,9 @@ function readDirectories(){
     $.ajax({
         dataType: "json",
         url: jasperserverURL + "/rest_v2/resources?type=reportUnit",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         type: "GET",
         contentType: "application/x-www-form-urlencoded",
         data: {
@@ -107,6 +113,9 @@ function linkWithJasper(dirName){
     $.ajax({
         dataType: "json",
         url: jasperserverURL + "/rest_v2/resources?type=reportUnit",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         type: "GET",
         contentType: "application/x-www-form-urlencoded",
         data: {

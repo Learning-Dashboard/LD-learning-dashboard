@@ -24,6 +24,9 @@ if (getParameterByName('id').length !== 0) {
 function getAllMetrics(){
     $.ajax({
         url : url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         type: "GET",
         success: function (response) {
             if (id) // in case we show metrics for one detailed factor
@@ -34,6 +37,9 @@ function getAllMetrics(){
             jQuery.ajax({
                 dataType: "json",
                 url: "../api/metrics",
+                headers: {
+                    'X-API-KEY': 'apiKey_admin'
+                },
                 cache: false,
                 type: "GET",
                 async: true,
@@ -53,6 +59,9 @@ function getFactors() {
     jQuery.ajax({
         dataType: "json",
         url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: true,

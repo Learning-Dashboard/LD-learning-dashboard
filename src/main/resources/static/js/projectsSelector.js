@@ -110,6 +110,9 @@ function getProjects(profileID) {
     jQuery.ajax({
         dataType: "json",
         url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: false,
@@ -135,6 +138,9 @@ function getProfiles() {
     jQuery.ajax({
         dataType: "json",
         url: "../api/profiles",
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: false,
@@ -192,6 +198,9 @@ function getActiveUserProjects() {
         jQuery.ajax({
             dataType: "json",
             url: "../api/allowedprojects",
+            headers: {
+                'X-API-KEY': 'apiKey_admin'
+            },
             cache: false,
             type: "GET",
             async: false,
@@ -254,6 +263,9 @@ function showProjectSelector (projects) {
                 jQuery.ajax({
                     dataType: "json",
                     url: "../api/profiles/" + profileId,
+                    headers: {
+                        'X-API-KEY': 'apiKey_admin'
+                    },
                     cache: false,
                     type: "GET",
                     async: false,
@@ -329,6 +341,9 @@ function getUpdatesNotSeen() {
     jQuery.ajax({
         dataType: "json",
         url: url,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: false,

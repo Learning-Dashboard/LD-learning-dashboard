@@ -417,6 +417,9 @@ $("#saveSI").click(function () {
         formData.append("quality_factors", qualityFactors);
         $.ajax({
             url: postUrl,
+            headers: {
+                'X-API-KEY': 'apiKey_admin'
+            },
             data: formData,
             type: httpMethod,
             contentType: false,
@@ -441,6 +444,9 @@ $("#deleteSI").click(function () {
     if (confirm("\t\t This operation cannot be undone. \t\n Are you sure you want to delete this strategic indicator?")) {
         jQuery.ajax({
             url: deleteUrl,
+            headers: {
+                'X-API-KEY': 'apiKey_admin'
+            },
             cache: false,
             type: "DELETE",
             async: true,

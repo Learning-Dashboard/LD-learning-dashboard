@@ -746,6 +746,9 @@ function profileQualityLevelFilter() {
     jQuery.ajax({
         dataType: "json",
         url: "../api/profiles/"+profileId,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "GET",
         async: false,

@@ -80,6 +80,9 @@ function getActiveUserProjects() {
         jQuery.ajax({
             dataType: "json",
             url: serverUrl+"/api/allowedprojects?token="+token + "&id=" + id,
+            headers: {
+                'X-API-KEY': 'apiKey_admin'
+            },
             cache: false,
             type: "GET",
             async: false,
@@ -112,6 +115,9 @@ function updateProjects() {
     jQuery.ajax({
         dataType: "json",
         url: serverUrl+"/api/allowedprojects?id=" + id,
+        headers: {
+            'X-API-KEY': 'apiKey_admin'
+        },
         cache: false,
         type: "PUT",
         async: false,
