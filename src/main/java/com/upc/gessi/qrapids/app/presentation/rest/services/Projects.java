@@ -168,4 +168,30 @@ public class Projects {
     public List<DataSource> getIdentities(){
         return Arrays.asList(DataSource.values());
     }
+
+    ///////////////////////////////////////////////////////// NEW CODE /////////////////////////////////////////////////////////
+    @PostMapping("/api/projects")
+    @ResponseStatus(HttpStatus.CREATED)
+    public DTOProject createProject(@RequestBody @Valid DTOProject body) {
+        try {
+            DTOProject newProject = projectsController.createProject(body);
+            return newProject;
+        } catch (ElementAlreadyPresentException e) {
+            logger.error(e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Project already exists");
+        }
+    }
+
+    @PostMapping("/api/projects/{projectId}/students")
+    @ResponseStatus(HttpStatus.CREATED)
+    public DTOStudent createStudent(@PathVariable Long projectId, @RequestBody DTOStudent dto) {
+        return projectsController.createStudentForProject(projectId, dto);
+    }
+
+    @DeleteMapping("/api/projects/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProject(@PathVariable Long id) {
+        projectsController.deleteProject(id);
+    }
+
 }

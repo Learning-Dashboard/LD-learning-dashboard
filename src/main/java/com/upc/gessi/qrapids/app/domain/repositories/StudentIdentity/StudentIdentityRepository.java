@@ -7,6 +7,9 @@ import org.springframework.data.repository.CrudRepository;
 import java.util.List;
 
 public interface StudentIdentityRepository extends CrudRepository<StudentIdentity, Long> {
+    
 
     List<StudentIdentity> findAllByStudent(Student student);
+
+    void deleteAllByStudentIn(List<Student> students);
 }

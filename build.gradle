@@ -9,7 +9,7 @@ buildscript {
 	dependencies {
 		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
 		classpath('org.postgresql:postgresql:42.1.4.jre7')
-		classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.9.2'
+		//classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.9.2'
 	}
 }
 
@@ -23,11 +23,12 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'war'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'jacoco'
-apply plugin: 'org.asciidoctor.convert'
+//apply plugin: 'org.asciidoctor.convert'
 
 group = 'com.upc.gessi.qrapids'
 version = '3.3'
 sourceCompatibility = 1.8
+
 
 war {
 	from 'README.md'
@@ -40,7 +41,6 @@ war {
 	}
 	enabled = true
 }
-
 bootWar {
 	from 'README.md'
 	baseName = 'learning-dashboard'
@@ -53,6 +53,13 @@ bootWar {
 	enabled = true
 }
 
+/*
+bootJar {
+	baseName = 'learning-dashboard'
+    version = version
+    enabled = true
+}
+*/
 repositories {
 	mavenCentral()
 }
@@ -60,65 +67,64 @@ repositories {
 dependencies {
 
 	// Security
-	compile("org.springframework.boot:spring-boot-starter-security")
+	implementation("org.springframework.boot:spring-boot-starter-security")
 
 	// JWT
-	compile("io.jsonwebtoken:jjwt:0.7.0")
+	implementation("io.jsonwebtoken:jjwt:0.7.0")
 
 	// Development
-	compile('org.springframework.boot:spring-boot-devtools')
+	implementation('org.springframework.boot:spring-boot-devtools')
 
 	// Spring Boot
-	compile('org.springframework.boot:spring-boot-starter-actuator')
-	compile('org.springframework.boot:spring-boot-starter-data-jpa')
-	compile('org.springframework.boot:spring-boot-starter-thymeleaf')
-	compile('org.springframework.boot:spring-boot-starter-web')
+	implementation('org.springframework.boot:spring-boot-starter-actuator')
+	implementation('org.springframework.boot:spring-boot-starter-data-jpa')
+	implementation('org.springframework.boot:spring-boot-starter-thymeleaf')
+	implementation('org.springframework.boot:spring-boot-starter-web')
 
 	// Spring mail
-	compile 'org.springframework.boot:spring-boot-starter-mail:1.5.8.RELEASE'
+	implementation 'org.springframework.boot:spring-boot-starter-mail:1.5.8.RELEASE'
 
 	// Database JDBC
-	compile('org.postgresql:postgresql:42.1.4.jre7')
+	implementation('org.postgresql:postgresql:42.1.4.jre7')
 
 	// JSON Java Library
-	compile 'com.google.code.gson:gson:2.8.2'
+	implementation 'com.google.code.gson:gson:2.8.2'
 
 	// Socket
-	compile 'org.springframework.boot:spring-boot-starter-websocket'
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
 	// Utils
-	compile 'commons-io:commons-io:2.5'
-	compile 'commons-codec:commons-codec:1.10'
+	implementation 'commons-io:commons-io:2.5'
+	implementation 'commons-codec:commons-codec:1.10'
 
 	// MongoDB API
-	compile('org.mongodb:mongodb-driver-sync:3.12.14')
-	compile('org.mongodb:mongodb-driver-core:3.12.14')
-	compile('org.mongodb:bson:3.12.14')
-	compile files('libs/LD-qma-mongo-1.0.jar')
+	implementation('org.mongodb:mongodb-driver-sync:3.12.14')
+	implementation('org.mongodb:mongodb-driver-core:3.12.14')
+	implementation('org.mongodb:bson:3.12.14')
+	implementation files('libs/LD-qma-mongo-1.0.jar')
 
 	// QR-Eval library
-	compile files('libs/LD-eval-2.2.jar')
+	implementation files('libs/LD-eval-2.2.jar')
 
 	// Logging
-	compile('org.apache.logging.log4j:log4j-api:2.9.1')
-	compile('org.apache.logging.log4j:log4j-core:2.9.1')
+	implementation('org.apache.logging.log4j:log4j-api:2.9.1')
+	implementation('org.apache.logging.log4j:log4j-core:2.9.1')
 
 	// Rest API Documentation
-	asciidoctor 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+	//asciidoctor 'org.springframework.restdocs:spring-restdocs-asciidoctor'
 
 	// Testing
-	testCompile('org.springframework.boot:spring-boot-starter-test')
-	testCompile 'org.springframework.restdocs:spring-restdocs-mockmvc'
-	testCompile('com.h2database:h2')
-
+	testImplementation('org.springframework.boot:spring-boot-starter-test')
+	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+	testImplementation('com.h2database:h2')
 	// Comment this line to launch application from developing environment
 	// Uncomment this line before generating .war file
-	// providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+	runtimeOnly 'org.springframework.boot:spring-boot-starter-tomcat'
 
 }
 
 jacoco {
-	toolVersion = "0.8.2"
+	toolVersion = "0.8.8"
 }
 
 jacocoTestReport {
@@ -127,7 +133,7 @@ jacocoTestReport {
 		html.enabled = false
 	}
 }
-
+/*
 asciidoctor {
 	sourceDir = file('docs/asciidoc')
 	inputs.dir snippetsDir
@@ -135,7 +141,7 @@ asciidoctor {
 	separateOutputDirs = false
 	dependsOn test
 }
-
+*/
 test {
 	testLogging {
 		events "passed", "skipped", "failed"

@@ -11,4 +11,7 @@ import java.util.List;
 public interface ProjectIdentityRepository extends CrudRepository<ProjectIdentity, Long> {
 
     List<ProjectIdentity> findAllByProject(Project project);
+
+    void deleteAllByProject(Project project);
+
 }
