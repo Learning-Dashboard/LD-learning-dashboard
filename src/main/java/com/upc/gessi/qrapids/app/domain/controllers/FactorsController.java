@@ -176,20 +176,20 @@ public class FactorsController {
 
         if(checkIfCategoriesHasRepeats(categories)) throw new CategoriesException(Messages.CATEGORIES_HAVE_REPEATS);
 
-        if (categories.size() > 2) {
+        //if (categories.size() > 2) {
             //metricCategoryRepository.deleteAll();
-            for (Map<String, String> c : categories) {
-                QFCategory qfCategory = new QFCategory();
-                qfCategory.setName(name);
-                qfCategory.setType(c.get("type"));
-                qfCategory.setColor(c.get("color"));
-                float upperThreshold = Float.parseFloat(c.get("upperThreshold"));
-                qfCategory.setUpperThreshold(upperThreshold/100f);
-                factorCategoryRepository.save(qfCategory);
-            }
-        } else {
-            throw new CategoriesException(Messages.NOT_ENOUGH_CATEGORIES);
+        for (Map<String, String> c : categories) {
+            QFCategory qfCategory = new QFCategory();
+            qfCategory.setName(name);
+            qfCategory.setType(c.get("type"));
+            qfCategory.setColor(c.get("color"));
+            float upperThreshold = Float.parseFloat(c.get("upperThreshold"));
+            qfCategory.setUpperThreshold(upperThreshold/100f);
+            factorCategoryRepository.save(qfCategory);
         }
+        //} else {
+        //    throw new CategoriesException(Messages.NOT_ENOUGH_CATEGORIES);
+        //}
     }
 
     public Factor findFactorByExternalIdAndProjectId(String externalId, Long prjId) throws QualityFactorNotFoundException {

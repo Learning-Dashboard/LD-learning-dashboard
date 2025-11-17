@@ -98,12 +98,6 @@ public class MetricsController {
         });
     }
 
-
-
-
-
-
-
     public List<Metric> getMetricsByProject (String prj) throws ProjectNotFoundException {
         Project project = projectController.findProjectByExternalId(prj);
         List<Metric> metrics = metricRepository.findByProject_IdOrderByName(project.getId());
@@ -199,20 +193,20 @@ public class MetricsController {
 
         if(checkIfCategoriesHasRepeats(categories)) throw new CategoriesException(Messages.CATEGORIES_HAVE_REPEATS);
 
-        if (categories.size() > 2) {
+        //if (categories.size() > 2) {
             //metricCategoryRepository.deleteAll();
-            for (Map<String, String> c : categories) {
-                MetricCategory metricCategory = new MetricCategory();
-                metricCategory.setName(name);
-                metricCategory.setType(c.get("type"));
-                metricCategory.setColor(c.get("color"));
-                float upperThreshold = Float.parseFloat(c.get("upperThreshold"));
-                metricCategory.setUpperThreshold(upperThreshold/100f);
-                metricCategoryRepository.save(metricCategory);
-            }
-        } else {
-            throw new CategoriesException(Messages.NOT_ENOUGH_CATEGORIES);
+        for (Map<String, String> c : categories) {
+            MetricCategory metricCategory = new MetricCategory();
+            metricCategory.setName(name);
+            metricCategory.setType(c.get("type"));
+            metricCategory.setColor(c.get("color"));
+            float upperThreshold = Float.parseFloat(c.get("upperThreshold"));
+            metricCategory.setUpperThreshold(upperThreshold/100f);
+            metricCategoryRepository.save(metricCategory);
         }
+        //} else {
+        //    throw new CategoriesException(Messages.NOT_ENOUGH_CATEGORIES);
+        //}
     }
 
     public void setMetricQualityFactorRelation (List<DTOMetricEvaluation> metricList, String projectExternalId) throws IOException {

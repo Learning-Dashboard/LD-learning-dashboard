@@ -93,7 +93,9 @@ public class UsersController {
     }
 
     public boolean hasCurrentUserAnonymousMode(){
-        return  getCurrentUser().isAnonymousMode();
+        AppUser user = getCurrentUser();
+        if (user == null) return false;
+        return user.isAnonymousMode();
     }
 
     public AnonymizationModes getCurrentUserAnonymizationMode(){

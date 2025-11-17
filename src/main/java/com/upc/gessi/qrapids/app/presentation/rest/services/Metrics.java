@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedHashMap;
 
 @RestController
 public class Metrics {
@@ -83,8 +84,9 @@ public class Metrics {
     @PostMapping("/api/metrics/categories")
     @ResponseStatus(HttpStatus.CREATED)
     public void newMetricsCategories (@RequestBody List<Map<String, String>> categories, @RequestParam(value = "name", required = false) String name) {
-        if(categories.size()<3) throw new BadRequestException(Messages.NOT_ENOUGH_CATEGORIES);
-        else metricsController.newMetricCategories(categories, name);
+        //if(categories.size()<3) throw new BadRequestException(Messages.NOT_ENOUGH_CATEGORIES);
+        //else 
+        metricsController.newMetricCategories(categories, name);
     }
 
     @PutMapping("/api/metrics/categories")
