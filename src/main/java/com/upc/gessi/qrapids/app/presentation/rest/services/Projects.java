@@ -7,6 +7,7 @@ import com.upc.gessi.qrapids.app.domain.exceptions.ElementAlreadyPresentExceptio
 import com.upc.gessi.qrapids.app.domain.exceptions.ProjectAlreadyAnonymizedException;
 import com.upc.gessi.qrapids.app.domain.models.DataSource;
 import com.upc.gessi.qrapids.app.domain.models.Project;
+import com.upc.gessi.qrapids.app.domain.models.Student;
 import com.upc.gessi.qrapids.app.domain.utils.AnonymizationModes;
 import com.upc.gessi.qrapids.app.presentation.rest.dto.*;
 import com.upc.gessi.qrapids.app.domain.exceptions.CategoriesException;
@@ -95,6 +96,19 @@ public class Projects {
             } else {
                 throw new ElementAlreadyPresentException(String.format(Messages.PROJECT_NAME_ALREADY_EXISTS, body.getName()));
             }
+            if (body.getStudents() != null) {
+            for (DTOStudent dtoStudent : body.getStudents()) {
+                Student student = studentsController.getStudentById(dtoStudent.getId());
+                if (student != null) {
+                    studentsController.updateStudent(
+                        student,
+                        dtoStudent.getName(),
+                        dtoStudent.getIdentities(),
+                        Collections.emptyList() // O mètriques si s’escau
+                    );
+                }
+            }
+}
     }
 
     @PostMapping("api/projects/{projectId}/anonymize")
