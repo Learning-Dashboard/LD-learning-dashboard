@@ -128,7 +128,8 @@ public class MetricsController {
             Project project = projectController.findProjectByExternalId(prjExternalID);
             Metric metricsSaved = metricRepository.findByExternalIdAndProjectId(metric.getId(),project.getId());
             if (metricsSaved == null) {
-                Metric newMetric = new Metric(metric.getId(), metric.getName(),metric.getDescription(), project, "Default");
+                Metric newMetric = new Metric(metric.getId(), metric.getName(),metric.getDescription(), project, "Default", metric.getScope());
+                System.out.println("New metric added to database: " + newMetric.getName() + " with scope " + newMetric.getScope() + " in project " + prjExternalID);
                 newMetric.setStudent(null);
                 metricRepository.save(newMetric);
             }
