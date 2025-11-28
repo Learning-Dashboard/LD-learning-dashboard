@@ -68,24 +68,27 @@ public class Factors {
         Iterable<QFCategory> factorCategoryList = factorsController.getFactorCategories(name);
         List<DTOFactorCategory> dtoFactorCategoryList = new ArrayList<>();
         for (QFCategory factorCategory : factorCategoryList) {
-            dtoFactorCategoryList.add(new DTOFactorCategory(factorCategory.getId(), factorCategory.getName(), factorCategory.getColor(), factorCategory.getUpperThreshold(), factorCategory.getType()));
+            dtoFactorCategoryList.add(new DTOFactorCategory(factorCategory.getId(), factorCategory.getName(), factorCategory.getPatternGroup(), factorCategory.getColor(), factorCategory.getUpperThreshold(), factorCategory.getType()));
         }
         return dtoFactorCategoryList;
     }
 
     @PostMapping("/api/factors/categories")
     @ResponseStatus(HttpStatus.CREATED)
-    public void newFactorCategories (@RequestBody List<Map<String, String>> categories, @RequestParam(value = "name", required = false) String name) {
+    public void newFactorCategories (@RequestBody List<Map<String, String>> categories, 
+                                    @RequestParam(value = "name", required = false) String name, 
+                                    @RequestParam(value = "patternGroup", required = false) String patternGroup) {
         //if(categories.size()<3)
           //  throw new BadRequestException(Messages.NOT_ENOUGH_CATEGORIES);
 
-        factorsController.newFactorCategories(categories, name);
+        System.out.println("New factors categories: " + categories.toString() + " name: " + name + " patternGroup: " + patternGroup);
+        factorsController.newFactorCategories(categories, name, patternGroup);
     }
 
     @PutMapping("/api/factors/categories")
     @ResponseStatus(HttpStatus.OK)
-    public void updateFactorsCategories (@RequestBody List<Map<String, String>> categories,@RequestParam(value = "name", required = true) String name) {
-        factorsController.updateFactorCategory(categories, name);
+    public void updateFactorsCategories (@RequestBody List<Map<String, String>> categories,@RequestParam(value = "name", required = true) String name, @RequestParam(value = "patternGroup", required = false) String patternGroup) {
+        factorsController.updateFactorCategory(categories, name, patternGroup);
     }
 
     @DeleteMapping("/api/factors/categories")

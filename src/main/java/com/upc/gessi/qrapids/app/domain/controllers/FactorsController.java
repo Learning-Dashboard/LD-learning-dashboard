@@ -146,11 +146,11 @@ public class FactorsController {
 
     }
 
-    public void updateFactorCategory(List<Map<String, String>> categories ,String name) throws CategoriesException {
+    public void updateFactorCategory(List<Map<String, String>> categories ,String name, String patternGroup) throws CategoriesException {
 
         if(checkIfCategoriesHasRepeats(categories)) throw new CategoriesException(Messages.CATEGORIES_HAVE_REPEATS);
         deleteFactorCategory(name);
-        newFactorCategories(categories, name);
+        newFactorCategories(categories, name, patternGroup);
     }
 
     public boolean CheckIfNameExists(String name) {
@@ -169,7 +169,7 @@ public class FactorsController {
         return false;
     }
 
-    public void newFactorCategories (List<Map<String, String>> categories, String name) throws CategoriesException {
+    public void newFactorCategories (List<Map<String, String>> categories, String name, String patternGroup) throws CategoriesException {
 
         boolean exists=CheckIfNameExists(name);
         if(exists) throw new CategoriesException(Messages.CATEGORY_ALREADY_EXISTS);
@@ -181,6 +181,7 @@ public class FactorsController {
         for (Map<String, String> c : categories) {
             QFCategory qfCategory = new QFCategory();
             qfCategory.setName(name);
+            qfCategory.setPatternGroup(patternGroup);
             qfCategory.setType(c.get("type"));
             qfCategory.setColor(c.get("color"));
             float upperThreshold = Float.parseFloat(c.get("upperThreshold"));

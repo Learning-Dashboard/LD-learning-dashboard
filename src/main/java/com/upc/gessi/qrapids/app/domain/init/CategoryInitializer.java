@@ -30,11 +30,12 @@ public class CategoryInitializer {
     public void initializeDefaultCategory() {
         boolean metricExists = metricCategoryRepository.existsByName("Default");
         if (!metricExists) {
-            for (int i = 0; i < NOMS.length; i++) metricCategoryRepository.save(new MetricCategory("Default", COLORS[i], VALORS[i], NOMS[i]));
+            for (int i = 0; i < NOMS.length; i++) metricCategoryRepository.save(new MetricCategory("Default", null, COLORS[i], VALORS[i], NOMS[i]));
+
         }
         boolean factorExists = factorCategoryRepository.existsByName("Default");
         if (!factorExists) {
-            for (int i = 0; i < NOMS.length; i++) factorCategoryRepository.save(new QFCategory("Default", COLORS[i], VALORS[i], NOMS[i]));
+            for (int i = 0; i < NOMS.length; i++) factorCategoryRepository.save(new QFCategory("Default", null, COLORS[i], VALORS[i], NOMS[i]));
         }
         for (int i = 0; i < NOMS.length; i++) {
             if (!strategicIndicatorCategoryRepository.existsByName(NOMS[i])) {

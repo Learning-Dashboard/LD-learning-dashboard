@@ -20,6 +20,9 @@ public class QFCategory implements Serializable {
     @Column(name="name")
     private String name;
 
+    @Column(name="patternGroup")
+    private String patternGroup;
+
     @Column(name="color")
     private String color;
 
@@ -30,11 +33,12 @@ public class QFCategory implements Serializable {
     public QFCategory() {
     }
 
-    public QFCategory(String name, String color, float upperThreshold, String type) {
+    public QFCategory(String name, String patternGroup, String color, float upperThreshold, String type) {
         this.name = name;
+        this.patternGroup = patternGroup;
         this.color = color;
         this.upperThreshold = upperThreshold;
-        this.type=type;
+        this.type = type;
     }
 
     public Long getId() {
@@ -59,6 +63,14 @@ public class QFCategory implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPatternGroup() {
+        return patternGroup;
+    }
+
+    public void setPatternGroup(String patternGroup) {
+        this.patternGroup = patternGroup;
     }
 
     public String getColor() {

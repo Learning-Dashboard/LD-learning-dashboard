@@ -120,11 +120,11 @@ public class QrapidsApplication extends SpringBootServletInitializer {
 			categories.add(cat3);
 
 			if (metricCategoryList.size() == 0) {
-				context.getBean(MetricsController.class).newMetricCategories(categories, "Default");
+				context.getBean(MetricsController.class).newMetricCategories(categories, "Default", ""); 
 			}
 			// Save Factor categories
 			if (factorCategoryList.size() == 0){
-				context.getBean(FactorsController.class).newFactorCategories(categories, "Default");
+				context.getBean(FactorsController.class).newFactorCategories(categories, "Default", "");
 			}
 		} catch (Exception e) {
 			Logger logger = LoggerFactory.getLogger(Alerts.class);

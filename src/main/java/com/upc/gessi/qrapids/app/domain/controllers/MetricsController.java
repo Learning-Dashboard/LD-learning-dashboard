@@ -164,11 +164,11 @@ public class MetricsController {
 
     }
 
-    public void updateMetricCategory(List<Map<String, String>> categories ,String name) throws CategoriesException {
+    public void updateMetricCategory(List<Map<String, String>> categories ,String name, String patternGroup) throws CategoriesException {
 
         if(checkIfCategoriesHasRepeats(categories)) throw new CategoriesException(Messages.CATEGORIES_HAVE_REPEATS);
         deleteMetricCategory(name);
-        newMetricCategories(categories, name);
+        newMetricCategories(categories, name, patternGroup);
     }
 
     public boolean CheckIfNameExists(String name) {
@@ -187,7 +187,7 @@ public class MetricsController {
         return false;
     }
 
-    public void newMetricCategories (List<Map<String, String>> categories, String name) throws CategoriesException {
+    public void newMetricCategories (List<Map<String, String>> categories, String name, String patternGroup) throws CategoriesException {
 
         boolean exists=CheckIfNameExists(name);
         if(exists) throw new CategoriesException(Messages.CATEGORY_ALREADY_EXISTS);
@@ -199,6 +199,7 @@ public class MetricsController {
         for (Map<String, String> c : categories) {
             MetricCategory metricCategory = new MetricCategory();
             metricCategory.setName(name);
+            metricCategory.setPatternGroup(patternGroup);
             metricCategory.setType(c.get("type"));
             metricCategory.setColor(c.get("color"));
             float upperThreshold = Float.parseFloat(c.get("upperThreshold"));
