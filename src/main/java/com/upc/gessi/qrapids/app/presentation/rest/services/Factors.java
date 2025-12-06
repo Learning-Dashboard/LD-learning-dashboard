@@ -226,6 +226,22 @@ public class Factors {
         }
     }
 
+    @PutMapping("/api/qualityFactors/{id}/category")
+    @ResponseStatus(HttpStatus.OK)
+    public void updateQualityFactorCategory(@PathVariable Long id,
+                                            @RequestParam("category") String category) {
+        try {
+            Factor factor = factorsController.getQualityFactorById(id);
+            factor.setCategoryName(category);
+            factorsController.saveQualityFactor(factor);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    Messages.INTERNAL_SERVER_ERROR + e.getMessage());
+        }
+    }
+
+
     @DeleteMapping("/api/qualityFactors/{id}")
     @ResponseStatus(HttpStatus.OK)
     public void deleteQualityFactor (@PathVariable Long id) {

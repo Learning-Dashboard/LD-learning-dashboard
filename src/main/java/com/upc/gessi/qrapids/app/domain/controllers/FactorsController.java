@@ -296,6 +296,13 @@ public class FactorsController {
         return qualityFactor;
     }
 
+    ////////////////////////////////NEW CODE////////////////////////////////
+    public Factor saveQualityFactor(Factor factor) {
+        return qualityFactorRepository.save(factor); 
+    }
+    ////////////////////////////////////////////////////////////////////////    
+
+
     private boolean assignQualityMetricsToQualityFactor (List<String> qualityMetrics, Factor qualityFactor) throws MetricNotFoundException {
         List<QualityFactorMetrics> qualityMetricsWeights = new ArrayList();
         boolean weighted = false;
