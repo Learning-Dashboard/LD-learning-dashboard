@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 
@@ -231,28 +232,49 @@ public class FactorsController {
     public void updateDataBaseWithNewFactors(String prjExternalID, List<DTOFactorEvaluation> factors,
             List<DTODetailedFactorEvaluation> factorsWithMetrics)
             throws ProjectNotFoundException, MetricNotFoundException {
-        Project project = projectsController.findProjectByExternalId(prjExternalID);
+    Project project = projectsController.findProjectByExternalId(prjExternalID);
+    logger.info("[FactorsImport] Syncing factors for project {} ({} factors, {} detailed entries)",
+        prjExternalID,
+        factors != null ? factors.size() : 0,
+        factorsWithMetrics != null ? factorsWithMetrics.size() : 0);
+
+    if (factors == null || factors.isEmpty()) {
+        logger.warn("[FactorsImport] Factor list is null/empty for project {}. Nothing to update.",
+            prjExternalID);
+        return;
+    }
+
+    Map<String, DTODetailedFactorEvaluation> factorMetricsIndex = new HashMap<>();
+        if (factorsWithMetrics != null) {
+            for (DTODetailedFactorEvaluation detail : factorsWithMetrics) {
+                if (detail != null && detail.getId() != null && !factorMetricsIndex.containsKey(detail.getId())) {
+                    factorMetricsIndex.put(detail.getId(), detail);
+                }
+            }
+        }
+
         for (DTOFactorEvaluation factor : factors) {
             Factor factorsSaved = qualityFactorRepository.findByExternalIdAndProjectId(factor.getId(), project.getId());
+            logger.debug("[FactorsImport] Processing factor '{}' ({})", factor.getName(), factor.getId());
             if (factorsSaved == null) {
                 try {
                     // ToDo factor composition with corresponding metrics weights (default all
                     // metrics are not weighted)
                     List<String> qualityMetrics = new ArrayList<>();
-                    int cont = 0;
-                    boolean found = false;
-                    while (cont < factorsWithMetrics.size() && !found) {
-                        DTODetailedFactorEvaluation df = factorsWithMetrics.get(cont);
-                        if (df.getId().equals(factor.getId())) {
-                            found = true;
-                            for (DTOMetricEvaluation m : df.getMetrics()) {
-                                Metric metric = metricsController.findMetricByExternalIdAndProjectId(m.getId(),
-                                        project.getId());
-                                qualityMetrics.add(String.valueOf(metric.getId()));
-                                qualityMetrics.add(String.valueOf(-1l));
-                            }
+                    DTODetailedFactorEvaluation df = factorMetricsIndex.get(factor.getId());
+                    if (df != null) {
+                        logger.debug("[FactorsImport] Detailed metrics found for new factor '{}': {} entries",
+                                factor.getId(),
+                                df.getMetrics() != null ? df.getMetrics().size() : 0);
+                        for (DTOMetricEvaluation m : df.getMetrics()) {
+                            Metric metric = metricsController.findMetricByExternalIdAndProjectId(m.getId(),
+                                    project.getId());
+                            qualityMetrics.add(String.valueOf(metric.getId()));
+                            qualityMetrics.add(String.valueOf(-1l));
                         }
-                        cont += 1;
+                    } else {
+                        logger.warn("[FactorsImport] No detailed metrics returned for new factor '{}'."
+                                + " It will be created without metric links until a later sync.", factor.getId());
                     }
                     Factor newFactor = saveImportedQualityFactor(factor.getId(), factor.getName(),
                             factor.getDescription(), qualityMetrics, project);
@@ -266,8 +288,80 @@ public class FactorsController {
                     org.slf4j.LoggerFactory.getLogger(FactorsController.class)
                             .error("Unexpected error importing factor " + factor.getId(), e);
                 }
+            } else {
+                DTODetailedFactorEvaluation detailedFactor = factorMetricsIndex.get(factor.getId());
+                if (detailedFactor != null) {
+                    int added = appendMissingMetricsToFactor(factorsSaved, detailedFactor, project);
+                    if (added > 0) {
+                        qualityFactorRepository.save(factorsSaved);
+                        logger.info("Added {} new metric relation(s) to quality factor '{}' for project {}", added,
+                                factorsSaved.getName(), project.getExternalId());
+                    } else {
+                        logger.debug(
+                                "[FactorsImport] No new metric relations detected for factor '{}' despite detailed metrics",
+                                factor.getId());
+                    }
+                } else {
+                    logger.debug("[FactorsImport] Detailed metrics missing for existing factor '{}'."
+                            + " Skipping append step.", factor.getId());
+                }
             }
         }
+    }
+
+    private int appendMissingMetricsToFactor(Factor factor, DTODetailedFactorEvaluation detailedFactor, Project project) {
+        if (detailedFactor.getMetrics() == null || detailedFactor.getMetrics().isEmpty()) {
+            logger.debug("[FactorsImport] Detailed factor '{}' contains zero metrics in evaluation payload",
+                    detailedFactor.getId());
+            return 0;
+        }
+
+        List<QualityFactorMetrics> relations = factor.getQualityFactorMetricsList();
+        if (relations == null) {
+            relations = new ArrayList<>();
+            factor.setQualityFactorMetricsList(relations);
+        }
+
+        Set<String> existingMetricExternalIds = relations.stream()
+                .map(rel -> rel.getMetric() != null ? rel.getMetric().getExternalId() : null)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        logger.debug("[FactorsImport] Factor '{}' currently linked to {} metric(s). Detailed payload reports {} metric(s).",
+                factor.getExternalId(), existingMetricExternalIds.size(), detailedFactor.getMetrics().size());
+
+        int added = 0;
+        for (DTOMetricEvaluation metricEvaluation : detailedFactor.getMetrics()) {
+            if (metricEvaluation == null || metricEvaluation.getId() == null
+                    || existingMetricExternalIds.contains(metricEvaluation.getId())) {
+                if (metricEvaluation != null && metricEvaluation.getId() != null) {
+                    logger.trace("[FactorsImport] Metric '{}' already linked to '{}', skipping",
+                            metricEvaluation.getId(), factor.getExternalId());
+                }
+                continue;
+            }
+            try {
+                Metric metric = metricsController.findMetricByExternalIdAndProjectId(metricEvaluation.getId(),
+                        project.getId());
+                QualityFactorMetrics relation = qualityFactorMetricsController.saveQualityFactorMetric(-1f, metric,
+                        factor);
+                relations.add(relation);
+                existingMetricExternalIds.add(metricEvaluation.getId());
+                added++;
+                logger.trace("[FactorsImport] Linked metric '{}' -> factor '{}'", metricEvaluation.getId(),
+                        factor.getExternalId());
+            } catch (MetricNotFoundException e) {
+                logger.warn("Metric '{}' for quality factor '{}' not found in project '{}'. Skipping relation update.",
+                        metricEvaluation.getId(), factor.getName(), project.getExternalId());
+            }
+        }
+
+        if (added == 0) {
+            logger.debug("[FactorsImport] No new metrics were linked to factor '{}' in this pass.",
+                    factor.getExternalId());
+        }
+
+        return added;
     }
 
     private Factor saveImportedQualityFactor(String id, String name, String description, List<String> qualityMetrics,
