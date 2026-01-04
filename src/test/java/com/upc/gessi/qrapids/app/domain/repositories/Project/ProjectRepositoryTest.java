@@ -21,18 +21,18 @@ public class ProjectRepositoryTest {
     private ProjectRepository projectRepository;
 
     @Test
-    public void findByExternalId () {
+    public void findByExternalId() {
         // Given
         String project1ExternalId = "project1";
         String project1Name = "Project 1";
         String project1Description = "test project";
-        Project project1 = new Project(project1ExternalId, project1Name, project1Description, null, true, false);
+        Project project1 = new Project(project1ExternalId, project1Name, project1Description, null, true, false, null);
         entityManager.persist(project1);
 
         String project2ExternalId = "project2";
         String project2Name = "Project 2";
         String project2Description = "test project";
-        Project project2 = new Project(project2ExternalId, project2Name, project2Description, null, true, false);
+        Project project2 = new Project(project2ExternalId, project2Name, project2Description, null, true, false, null);
         entityManager.persistAndFlush(project2);
 
         // When
@@ -43,18 +43,18 @@ public class ProjectRepositoryTest {
     }
 
     @Test
-    public void findByName () {
+    public void findByName() {
         // Given
         String project1ExternalId = "project1";
         String project1Name = "Project 1";
         String project1Description = "test project";
-        Project project1 = new Project(project1ExternalId, project1Name, project1Description, null, true, false);
+        Project project1 = new Project(project1ExternalId, project1Name, project1Description, null, true, false, null);
         entityManager.persist(project1);
 
         String project2ExternalId = "project2";
         String project2Name = "Project 2";
         String project2Description = "test project";
-        Project project2 = new Project(project2ExternalId, project2Name, project2Description, null, true, false);
+        Project project2 = new Project(project2ExternalId, project2Name, project2Description, null, true, false, null);
         entityManager.persistAndFlush(project2);
 
         // When

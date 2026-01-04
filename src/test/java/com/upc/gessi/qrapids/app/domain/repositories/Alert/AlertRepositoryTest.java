@@ -30,7 +30,8 @@ public class AlertRepositoryTest {
     @Test
     public void findAlertById() {
         // Given
-        Alert alert = new Alert(0.30f,  0.33f,  AlertType.TRESPASSED_THRESHOLD,  null,  "badBacklogManagement", "metric", null, null);
+        Alert alert = new Alert(0.30f, 0.33f, AlertType.TRESPASSED_THRESHOLD, null, "badBacklogManagement", "metric",
+                null, null);
         entityManager.persistAndFlush(alert);
 
         // When
@@ -42,58 +43,66 @@ public class AlertRepositoryTest {
     }
 
     @Test
-    public void findAllByProjectIdWhenHasAlerts(){
-        //Given
-        Project project = new Project("test_project", "TestProject", "", null, true, false);
+    public void findAllByProjectIdWhenHasAlerts() {
+        // Given
+        Project project = new Project("test_project", "TestProject", "", null, true, false, null);
         entityManager.persistAndFlush(project);
         Long projectId = project.getId();
 
-        Alert alert1 = new Alert(0.30f,  0.33f,  AlertType.TRESPASSED_THRESHOLD,  project,  "badBacklogManagement", "metric", null, null);
-        Alert alert2 = new Alert(0.28f,  0.33f,  AlertType.ALERT_NOT_TREATED,  project,  "badBacklogManagement", "metric", null, null);
+        Alert alert1 = new Alert(0.30f, 0.33f, AlertType.TRESPASSED_THRESHOLD, project, "badBacklogManagement",
+                "metric", null, null);
+        Alert alert2 = new Alert(0.28f, 0.33f, AlertType.ALERT_NOT_TREATED, project, "badBacklogManagement", "metric",
+                null, null);
         entityManager.persistAndFlush(alert1);
         entityManager.persistAndFlush(alert2);
 
-        //When
+        // When
         List<Alert> projectAlerts = alertRepository.findAllByProjectId(projectId);
 
-        //Then
+        // Then
         assertFalse(projectAlerts.isEmpty());
         assertEquals(2, projectAlerts.size());
         assertEquals(projectId, projectAlerts.get(0).getProject().getId(), projectAlerts.get(1).getProject().getId());
     }
 
     @Test
-    public void findAllByProjectIdWithoutAlerts(){
-        //Given
-        Project project = new Project("test_project2", "TestProject2", "", null, true, false);
+    public void findAllByProjectIdWithoutAlerts() {
+        // Given
+        Project project = new Project("test_project2", "TestProject2", "", null, true, false, null);
         entityManager.persistAndFlush(project);
         Long projectId = project.getId();
 
-        //When
+        // When
         List<Alert> projectAlerts = alertRepository.findAllByProjectId(projectId);
 
-        //Then
+        // Then
         assertTrue(projectAlerts.isEmpty());
     }
 
     @Test
-    public void findAllByProjectIdAndAffectedIdAndAffectedTypeTypeAndDateLessThanOrderByDateDesc(){
-        //Given
-        Project project = new Project("test_project3", "TestProject3", "", null, true, false);
+    public void findAllByProjectIdAndAffectedIdAndAffectedTypeTypeAndDateLessThanOrderByDateDesc() {
+        // Given
+        Project project = new Project("test_project3", "TestProject3", "", null, true, false, null);
         entityManager.persistAndFlush(project);
         Long projectId = project.getId();
         LocalDateTime yesterday = LocalDate.now().minusDays(1).atStartOfDay();
 
-        Alert alert = new Alert(0.30f,  0.50f,  AlertType.TRESPASSED_THRESHOLD,  project,  "badBacklogManagement", "metric", null, null);
-        Alert alert2 = new Alert(0.00f,  0.50f,  AlertType.ALERT_NOT_TREATED,  project,  "badBacklogManagement", "metric", null, null);
+        Alert alert = new Alert(0.30f, 0.50f, AlertType.TRESPASSED_THRESHOLD, project, "badBacklogManagement", "metric",
+                null, null);
+        Alert alert2 = new Alert(0.00f, 0.50f, AlertType.ALERT_NOT_TREATED, project, "badBacklogManagement", "metric",
+                null, null);
 
-        Alert alert3 = new Alert(0.00f,  0.50f,  AlertType.ALERT_NOT_TREATED,  project,  "badBacklogManagement", "metric", null, null);
+        Alert alert3 = new Alert(0.00f, 0.50f, AlertType.ALERT_NOT_TREATED, project, "badBacklogManagement", "metric",
+                null, null);
         alert3.setDate(Date.from(yesterday.atZone(ZoneId.systemDefault()).toInstant()));
-        Alert alert4 = new Alert(0.00f,  0.50f,  AlertType.ALERT_NOT_TREATED,  project,  "badBacklogManagement", "metric", null, null);
+        Alert alert4 = new Alert(0.00f, 0.50f, AlertType.ALERT_NOT_TREATED, project, "badBacklogManagement", "metric",
+                null, null);
         alert4.setDate(Date.from(yesterday.atZone(ZoneId.systemDefault()).toInstant()));
 
-        Alert alert5 = new Alert(0.00f,  0.50f,  AlertType.ALERT_NOT_TREATED,  project,  "badBacklogManagement", "factors", null, null);
-        Alert alert6 = new Alert(0.30f,  0.33f,  AlertType.TRESPASSED_THRESHOLD,  project,  "acceptance_criteria_check", "metric", null, null);
+        Alert alert5 = new Alert(0.00f, 0.50f, AlertType.ALERT_NOT_TREATED, project, "badBacklogManagement", "factors",
+                null, null);
+        Alert alert6 = new Alert(0.30f, 0.33f, AlertType.TRESPASSED_THRESHOLD, project, "acceptance_criteria_check",
+                "metric", null, null);
 
         entityManager.persistAndFlush(alert);
         entityManager.persistAndFlush(alert2);
@@ -105,43 +114,48 @@ public class AlertRepositoryTest {
         LocalDateTime today = LocalDate.now().atStartOfDay();
         Date dateToday = Date.from(today.atZone(ZoneId.systemDefault()).toInstant());
 
-        //When
-        Alert alertFound = alertRepository.findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
-                projectId, "badBacklogManagement", "metric", AlertType.ALERT_NOT_TREATED, dateToday);
+        // When
+        Alert alertFound = alertRepository
+                .findTopByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateLessThanOrderByIdDesc(
+                        projectId, "badBacklogManagement", "metric", AlertType.ALERT_NOT_TREATED, dateToday);
 
-        //Then
-        assertEquals(alertFound.getProject().getId(),projectId);
-        assertEquals(alertFound.getAffectedId(),"badBacklogManagement");
-        assertEquals(alertFound.getAffectedType(),"metric");
-        assertEquals(alertFound.getType(),AlertType.ALERT_NOT_TREATED);
+        // Then
+        assertEquals(alertFound.getProject().getId(), projectId);
+        assertEquals(alertFound.getAffectedId(), "badBacklogManagement");
+        assertEquals(alertFound.getAffectedType(), "metric");
+        assertEquals(alertFound.getType(), AlertType.ALERT_NOT_TREATED);
         assertEquals(alertFound.getId(), alert4.getId());
     }
 
     @Test
-    public void countByProjectIdAndStatus(){
-        //Given
-        Project project = new Project("test_project3", "TestProject3", "", null, true, false);
+    public void countByProjectIdAndStatus() {
+        // Given
+        Project project = new Project("test_project3", "TestProject3", "", null, true, false, null);
         entityManager.persistAndFlush(project);
         Long projectId = project.getId();
 
-        Alert alert = new Alert(0.31f,  0.50f,  AlertType.TRESPASSED_THRESHOLD,  project,  "badBacklogManagement", "metric", null, null);
-        Alert alert2 = new Alert(0.01f,  0.50f,  AlertType.ALERT_NOT_TREATED,  project,  "badBacklogManagement", "metric", null, null);
-        Alert alert3 = new Alert(0.31f,  0.33f,  AlertType.TRESPASSED_THRESHOLD,  project,  "acceptance_criteria_check", "metric", null, null);
+        Alert alert = new Alert(0.31f, 0.50f, AlertType.TRESPASSED_THRESHOLD, project, "badBacklogManagement", "metric",
+                null, null);
+        Alert alert2 = new Alert(0.01f, 0.50f, AlertType.ALERT_NOT_TREATED, project, "badBacklogManagement", "metric",
+                null, null);
+        Alert alert3 = new Alert(0.31f, 0.33f, AlertType.TRESPASSED_THRESHOLD, project, "acceptance_criteria_check",
+                "metric", null, null);
         entityManager.persistAndFlush(alert);
         entityManager.persistAndFlush(alert2);
         entityManager.persistAndFlush(alert3);
 
-        //When
+        // When
         int count = alertRepository.countByProjectIdAndStatus(projectId, AlertStatus.NEW);
 
-        //Then
+        // Then
         assertEquals(3, count);
     }
 
     @Test
-    public void setStatusToViewed(){
+    public void setStatusToViewed() {
         // Given
-        Alert alert = new Alert(0.31f,  0.50f,  AlertType.TRESPASSED_THRESHOLD,  null,  "badBacklogManagement", "metric", null, null);
+        Alert alert = new Alert(0.31f, 0.50f, AlertType.TRESPASSED_THRESHOLD, null, "badBacklogManagement", "metric",
+                null, null);
         entityManager.persistAndFlush(alert);
 
         // When
@@ -154,22 +168,25 @@ public class AlertRepositoryTest {
 
     @Test
     public void findTodayExactAlert() throws InterruptedException {
-        //Given
-        Project project = new Project("test_project", "TestProject", "", null, true, false);
+        // Given
+        Project project = new Project("test_project", "TestProject", "", null, true, false, null);
         entityManager.persistAndFlush(project);
 
         Long projectId = project.getId();
-        Alert alert = new Alert(0.31f,  0.50f,  AlertType.TRESPASSED_THRESHOLD,  project,  "badBacklogManagement", "metric", null, null);
+        Alert alert = new Alert(0.31f, 0.50f, AlertType.TRESPASSED_THRESHOLD, project, "badBacklogManagement", "metric",
+                null, null);
         entityManager.persistAndFlush(alert);
 
-        LocalDate todayDate= LocalDate.now();
+        LocalDate todayDate = LocalDate.now();
         LocalDateTime todayStart = todayDate.atStartOfDay();
         Date startDate = Date.from(todayStart.atZone(ZoneId.systemDefault()).toInstant());
         Thread.sleep(10);
         Date now = new Date();
 
         // When
-        Alert alertFound = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateGreaterThanEqualAndDateLessThan(projectId,"badBacklogManagement","metric", AlertType.TRESPASSED_THRESHOLD, startDate, now);
+        Alert alertFound = alertRepository
+                .findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndDateGreaterThanEqualAndDateLessThan(
+                        projectId, "badBacklogManagement", "metric", AlertType.TRESPASSED_THRESHOLD, startDate, now);
 
         // Then
         assertNotNull(alertFound);
@@ -178,23 +195,27 @@ public class AlertRepositoryTest {
 
     @Test
     public void findTodayExactPredictionAlert() throws InterruptedException {
-        //Given
-        Project project = new Project("test_project", "TestProject", "", null, true, false);
+        // Given
+        Project project = new Project("test_project", "TestProject", "", null, true, false, null);
         entityManager.persistAndFlush(project);
 
         Long projectId = project.getId();
         Date predDate = new Date();
-        Alert alert = new Alert(0.31f,  0.50f,  AlertType.TRESPASSED_THRESHOLD,  project,  "badBacklogManagement", "metric", predDate, "PROPHET");
+        Alert alert = new Alert(0.31f, 0.50f, AlertType.TRESPASSED_THRESHOLD, project, "badBacklogManagement", "metric",
+                predDate, "PROPHET");
         entityManager.persistAndFlush(alert);
 
         LocalDate todayDate = LocalDate.now();
         LocalDateTime todayStart = todayDate.atStartOfDay();
-        Date startDate= Date.from(todayStart.atZone(ZoneId.systemDefault()).toInstant());
+        Date startDate = Date.from(todayStart.atZone(ZoneId.systemDefault()).toInstant());
         Thread.sleep(10);
         Date now = new Date();
 
         // When
-        Alert alertFound = alertRepository.findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndPredictionTechniqueAndPredictionDateAndDateGreaterThanEqualAndDateLessThan(projectId,"badBacklogManagement","metric", AlertType.TRESPASSED_THRESHOLD,"PROPHET",predDate, startDate, now);
+        Alert alertFound = alertRepository
+                .findAlertByProjectIdAndAffectedIdAndAffectedTypeAndTypeAndPredictionTechniqueAndPredictionDateAndDateGreaterThanEqualAndDateLessThan(
+                        projectId, "badBacklogManagement", "metric", AlertType.TRESPASSED_THRESHOLD, "PROPHET",
+                        predDate, startDate, now);
 
         // Then
         assertNotNull(alertFound);

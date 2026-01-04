@@ -116,7 +116,7 @@ dependencies {
 	// Testing
 	testImplementation('org.springframework.boot:spring-boot-starter-test')
 	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
-	testImplementation('com.h2database:h2')
+	testImplementation('com.h2database:h2:1.4.200')
 	// Comment this line to launch application from developing environment
 	// Uncomment this line before generating .war file
 	runtimeOnly 'org.springframework.boot:spring-boot-starter-tomcat'
@@ -130,7 +130,7 @@ jacoco {
 jacocoTestReport {
 	reports {
 		xml.enabled = true
-		html.enabled = false
+		html.enabled = true
 	}
 }
 /*

@@ -1,6 +1,5 @@
 package com.upc.gessi.qrapids.app.presentation.rest.services;
 
-
 import com.upc.gessi.qrapids.app.domain.controllers.ProfilesController;
 import com.upc.gessi.qrapids.app.domain.models.DataSource;
 import com.upc.gessi.qrapids.app.domain.models.Profile;
@@ -46,660 +45,669 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class ProfilesTest {
 
-    private MockMvc mockMvc;
+        private MockMvc mockMvc;
 
-    @Rule
-    public JUnitRestDocumentation restDocumentation = new JUnitRestDocumentation();
+        @Rule
+        public JUnitRestDocumentation restDocumentation = new JUnitRestDocumentation();
 
-    @Mock
-    private ProfilesController profilesController;
+        @Mock
+        private ProfilesController profilesController;
 
-    @InjectMocks
-    private Profiles profileController;
+        @InjectMocks
+        private Profiles profileController;
 
-    private Double getFloatAsDouble(Float fValue) {
-        return Double.valueOf(fValue.toString());
-    }
-
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        mockMvc = MockMvcBuilders
-                .standaloneSetup(profileController)
-                .apply(documentationConfiguration(this.restDocumentation))
-                .build();
-    }
-
-    @Test
-    public void getProfiles() throws Exception {
-        Long projectId = 1L;
-        String projectExternalId = "test";
-        String projectName = "Test";
-        String projectDescription = "Test project";
-        boolean active = true;
-        String projectBacklogId = "999";
-
-        //PROJECT DTOS
-        String identityURL = "githubURL";
-        Map<DataSource, DTOProjectIdentity> dtoProjectIdentities = new HashMap<>();
-        dtoProjectIdentities.put(DataSource.GITHUB, new DTOProjectIdentity(DataSource.GITHUB, identityURL));
-        DTOProject dtoProject = new DTOProject(projectId, projectExternalId, projectName, projectDescription, null, active, projectBacklogId, false,dtoProjectIdentities, false);
-
-        List<DTOProject> dtoProjectList = new ArrayList<>();
-        dtoProjectList.add(dtoProject);
-
-        Long profileId = 1L;
-        String profileName = "Test";
-        String profileDescription = "Test profile";
-        String qualityLevel = "ALL";
-        String dsiView = "Radar";
-        String dqfView = "Radar";
-        String mView = "Gauge";
-        String qmView = "Graph";
-
-        Pair<Long, Boolean> pair = Pair.of(projectId, true);
-        List<Pair<Long, Boolean>> allSIs = new ArrayList<>();
-        allSIs.add(pair);
-
-        DTOProfile dtoProfile = new DTOProfile(profileId, profileName, profileDescription, qualityLevel, dsiView, dqfView, mView, qmView, dtoProjectList, allSIs);
-        List<DTOProfile> dtoProfileList = new ArrayList<>();
-        dtoProfileList.add(dtoProfile);
-
-        when(profilesController.getProfiles()).thenReturn(dtoProfileList);
-
-        // Perform request
-        RequestBuilder requestBuilder = MockMvcRequestBuilders
-                .get("/api/profiles");
-
-        this.mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].id", is(profileId.intValue())))
-                .andExpect(jsonPath("$[0].name", is(profileName)))
-                .andExpect(jsonPath("$[0].description", is(profileDescription)))
-                .andExpect(jsonPath("$[0].qualityLevel", is(qualityLevel)))
-                .andExpect(jsonPath("$[0].dsiView", is(dsiView)))
-                .andExpect(jsonPath("$[0].dqfView", is(dqfView)))
-                .andExpect(jsonPath("$[0].mView", is(mView)))
-                .andExpect(jsonPath("$[0].qmView", is(qmView)))
-                .andExpect(jsonPath("$[0].projects", hasSize(1)))
-                .andExpect(jsonPath("$[0].projects[0].id", is(projectId.intValue())))
-                .andExpect(jsonPath("$[0].projects[0].externalId", is(projectExternalId)))
-                .andExpect(jsonPath("$[0].projects[0].name", is(projectName)))
-                .andExpect(jsonPath("$[0].projects[0].description", is(projectDescription)))
-                .andExpect(jsonPath("$[0].projects[0].logo", is(nullValue())))
-                .andExpect(jsonPath("$[0].projects[0].active", is(active)))
-                .andExpect(jsonPath("$[0].projects[0].backlogId", is(projectBacklogId)))
-                .andExpect(jsonPath("$[0].projects[0].identities.GITHUB.dataSource", is(DataSource.GITHUB.toString())))
-                .andExpect(jsonPath("$[0].projects[0].identities.GITHUB.url", is(identityURL)))
-                .andExpect(jsonPath("$[0].projects[0].isGlobal",is(false)))
-                .andExpect(jsonPath("$[0].projects[0].students", is(nullValue())))
-                .andExpect(jsonPath("$[0].allSIs", hasSize(1)))
-                .andExpect(jsonPath("$[0].allSIs[0].first", is(projectId.intValue())))
-                .andExpect(jsonPath("$[0].allSIs[0].second", is(true)))
-                .andDo(document("profiles/all",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        responseFields(
-                                fieldWithPath("[].id")
-                                        .description("Profile identifier"),
-                                fieldWithPath("[].name")
-                                        .description("Profile name"),
-                                fieldWithPath("[].description")
-                                        .description("Profile description"),
-                                fieldWithPath("[].qualityLevel")
-                                        .description("Profile quality level"),
-                                fieldWithPath("[].dsiView")
-                                        .description("Default visualization for Detailed Strategic Indicators view"),
-                                fieldWithPath("[].dqfView")
-                                        .description("Default visualization for Detailed Factors view"),
-                                fieldWithPath("[].mView")
-                                        .description("Default visualization for Metrics view"),
-                                fieldWithPath("[].qmView")
-                                        .description("Default visualization for Quality Model view"),
-                                fieldWithPath("[].projects")
-                                        .description("List of all the projects which compose the profile"),
-                                fieldWithPath("[].projects[].id")
-                                        .description("Project identifier"),
-                                fieldWithPath("[].projects[].externalId")
-                                        .description("Project external identifier"),
-                                fieldWithPath("[].projects[].name")
-                                        .description("Project name"),
-                                fieldWithPath("[].projects[].description")
-                                        .description("Project description"),
-                                fieldWithPath("[].projects[].logo")
-                                        .description("Project logo file"),
-                                fieldWithPath("[].projects[].active")
-                                        .description("Is an active project?"),
-                                fieldWithPath("[].projects[].backlogId")
-                                        .description("Project identifier in the backlog"),
-                                fieldWithPath("[].projects[].anonymized")
-                                        .description("If project students are anonymized"),
-                                fieldWithPath("[].projects[].identities")
-                                        .description("Project identities"),
-                                fieldWithPath("[].projects[].identities.GITHUB")
-                                        .description("Example of identity, URLs separated by a ';'"),
-                                fieldWithPath("[].projects[].identities.GITHUB.dataSource")
-                                        .description("Identity data source. Example: Github, Taiga, PRT"),
-                                fieldWithPath("[].projects[].identities.GITHUB.url")
-                                        .description("Identity URL"),
-                                fieldWithPath("[].projects[].identities.GITHUB.project")
-                                        .description("Identity project"),
-                                fieldWithPath("[].projects[].isGlobal")
-                                        .description("Is a global project?"),
-                                fieldWithPath("[].projects[].students")
-                                        .description("Students of the project"),
-                                fieldWithPath("[].allSIs")
-                                        .description("List of pairs which specify for each project of profile, if it show all strategic indicators or not"),
-                                fieldWithPath("[].allSIs[].first")
-                                        .description("Project identifier"),
-                                fieldWithPath("[].allSIs[].second")
-                                        .description("Are all strategic indicators shown?"))
-                ));
-
-        // Verify mock interactions
-        verify(profilesController, times(1)).getProfiles();
-        verifyNoMoreInteractions(profilesController);
-    }
-
-    @Test
-    public void getProfileById() throws Exception {
-        Long projectId = 1L;
-        String projectExternalId = "test";
-        String projectName = "Test";
-        String projectDescription = "Test project";
-        boolean active = true;
-        String projectBacklogId = "999";
-
-        String identityURL = "GITHUBURL";
-        Map<DataSource, DTOProjectIdentity> dtoProjectIdentities = new HashMap<>();
-        dtoProjectIdentities.put(DataSource.GITHUB, new DTOProjectIdentity(DataSource.GITHUB, identityURL));
-
-        DTOProject dtoProject = new DTOProject(projectId, projectExternalId, projectName, projectDescription, null,
-                active, projectBacklogId, false,dtoProjectIdentities, false);
-
-        List<DTOProject> dtoProjectList = new ArrayList<>();
-        dtoProjectList.add(dtoProject);
-
-        Long profileId = 1L;
-        String profileName = "Test";
-        String profileDescription = "Test profile";
-        String qualityLevel = "ALL";
-        String dsiView = "Radar";
-        String dqfView = "Radar";
-        String mView = "Gauge";
-        String qmView = "Graph";
-
-        Pair<Long, Boolean> pair = Pair.of(projectId, true);
-        List<Pair<Long, Boolean>> allSIs = new ArrayList<>();
-        allSIs.add(pair);
-
-        DTOProfile dtoProfile = new DTOProfile(profileId, profileName, profileDescription, qualityLevel, dsiView, dqfView, mView, qmView, dtoProjectList, allSIs);
-
-        when(profilesController.getProfileById(profileId.toString())).thenReturn(dtoProfile);
-
-        // Perform request
-        RequestBuilder requestBuilder = RestDocumentationRequestBuilders
-                .get("/api/profiles/{id}", profileId);
-
-        this.mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(profileId.intValue())))
-                .andExpect(jsonPath("$.name", is(profileName)))
-                .andExpect(jsonPath("$.description", is(profileDescription)))
-                .andExpect(jsonPath("$.qualityLevel", is(qualityLevel)))
-                .andExpect(jsonPath("$.dsiView", is(dsiView)))
-                .andExpect(jsonPath("$.dqfView", is(dqfView)))
-                .andExpect(jsonPath("$.mView", is(mView)))
-                .andExpect(jsonPath("$.qmView", is(qmView)))
-                .andExpect(jsonPath("$.projects", hasSize(1)))
-                .andExpect(jsonPath("$.projects[0].id", is(projectId.intValue())))
-                .andExpect(jsonPath("$.projects[0].externalId", is(projectExternalId)))
-                .andExpect(jsonPath("$.projects[0].name", is(projectName)))
-                .andExpect(jsonPath("$.projects[0].description", is(projectDescription)))
-                .andExpect(jsonPath("$.projects[0].logo", is(nullValue())))
-                .andExpect(jsonPath("$.projects[0].active", is(active)))
-                .andExpect(jsonPath("$.projects[0].backlogId", is(projectBacklogId)))
-                .andExpect(jsonPath("$.projects[0].identities.GITHUB.dataSource", is(DataSource.GITHUB.toString())))
-                .andExpect(jsonPath("$.projects[0].identities.GITHUB.url", is(identityURL)))
-                .andExpect(jsonPath("$.projects[0].isGlobal",is(false)))
-                .andExpect(jsonPath("$.projects[0].students", is(nullValue())))
-                .andExpect(jsonPath("$.allSIs", hasSize(1)))
-                .andExpect(jsonPath("$.allSIs[0].first", is(projectId.intValue())))
-                .andExpect(jsonPath("$.allSIs[0].second", is(true)))
-                .andDo(document("profiles/single",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        pathParameters(
-                                parameterWithName("id")
-                                        .description("Profile identifier")
-                        ),
-                        responseFields(
-                                fieldWithPath("id")
-                                        .description("Profile identifier"),
-                                fieldWithPath("name")
-                                        .description("Profile name"),
-                                fieldWithPath("description")
-                                        .description("Profile description"),
-                                fieldWithPath("qualityLevel")
-                                        .description("Profile quality level"),
-                                fieldWithPath("dsiView")
-                                        .description("Default visualization for Detailed Strategic Indicators view"),
-                                fieldWithPath("dqfView")
-                                        .description("Default visualization for Detailed Factors view"),
-                                fieldWithPath("mView")
-                                        .description("Default visualization for Metrics view"),
-                                fieldWithPath("qmView")
-                                        .description("Default visualization for Quality Model view"),
-                                fieldWithPath("projects")
-                                        .description("List of all the projects which compose the profile"),
-                                fieldWithPath("projects[].id")
-                                        .description("Project identifier"),
-                                fieldWithPath("projects[].externalId")
-                                        .description("Project external identifier"),
-                                fieldWithPath("projects[].name")
-                                        .description("Project name"),
-                                fieldWithPath("projects[].description")
-                                        .description("Project description"),
-                                fieldWithPath("projects[].logo")
-                                        .description("Project logo file"),
-                                fieldWithPath("projects[].active")
-                                        .description("Is an active project?"),
-                                fieldWithPath("projects[].backlogId")
-                                        .description("Project identifier in the backlog"),
-                                fieldWithPath("projects[].anonymized")
-                                        .description("If project students are anonymized"),
-                                fieldWithPath("projects[].identities")
-                                        .description("Project identities"),
-                                fieldWithPath("projects[].identities.GITHUB")
-                                        .description("Example of identity, URLs separated by a ';'"),
-                                fieldWithPath("projects[].identities.GITHUB.dataSource")
-                                        .description("Identity data source. Example: Github, Taiga, PRT"),
-                                fieldWithPath("projects[].identities.GITHUB.url")
-                                        .description("Identity URL"),
-                                fieldWithPath("projects[].identities.GITHUB.project")
-                                        .description("Identity project"),
-                                fieldWithPath("projects[].isGlobal")
-                                        .description("Is a global project?"),
-                                fieldWithPath("projects[].students")
-                                        .description("Students of the project"),
-                                fieldWithPath("allSIs")
-                                        .description("List of pairs which specify for each project of profile, if it show all strategic indicators or not"),
-                                fieldWithPath("allSIs[].first")
-                                        .description("Project identifier"),
-                                fieldWithPath("allSIs[].second")
-                                        .description("Are all strategic indicators shown?"))
-                ));
-
-        // Verify mock interactions
-        verify(profilesController, times(1)).getProfileById(profileId.toString());
-        verifyNoMoreInteractions(profilesController);
-    }
-
-    @Test
-    public void updateProfile() throws Exception {
-        Long projectId = 1L;
-        String projectExternalId = "test";
-        String projectName = "Test";
-        String projectDescription = "Test project";
-        boolean active = true;
-        String projectBacklogId = "999";
-
-        // PROJECT DTO
-        Map<DataSource, DTOProjectIdentity> dtoProjectIdentities = new HashMap<>();
-        for(DataSource source: DataSource.values()){
-            dtoProjectIdentities.put(source,new DTOProjectIdentity(source, "test"));
+        private Double getFloatAsDouble(Float fValue) {
+                return Double.valueOf(fValue.toString());
         }
-        DTOProject dtoProject = new DTOProject(projectId, projectExternalId, projectName, projectDescription, null,
-                active, projectBacklogId, false,dtoProjectIdentities, false);
 
-        List<DTOProject> dtoProjectList = new ArrayList<>();
-        dtoProjectList.add(dtoProject);
-
-        Long profileId = 1L;
-        String profileName = "Test";
-        String profileDescription = "Test profile";
-        Profile.QualityLevel qualityLevel = Profile.QualityLevel.valueOf("ALL");
-        Profile.DetailedViews dsiView = Profile.DetailedViews.valueOf("Radar");
-        Profile.DetailedViews dqfView = Profile.DetailedViews.valueOf("Radar");
-        Profile.MetricsView mView = Profile.MetricsView.valueOf("Gauge");
-        Profile.QualityModelView qmView = Profile.QualityModelView.valueOf("Graph");
-
-        Pair<Long, Boolean> pair = Pair.of(projectId, true);
-        List<Pair<Long, Boolean>> allSIs = new ArrayList<>();
-        allSIs.add(pair);
-
-        String projects_info;
-        JSONArray array = new JSONArray();
-        JSONObject item = new JSONObject();
-        item.put("prj", projectId);
-        item.put("all_si", true);
-        item.put("si", new ArrayList<>());
-        array.add(item);
-        projects_info = array.toString();
-
-        Map<String, Pair<Boolean, List<String>>> projectsInfoMap = new HashMap<>();
-        projectsInfoMap.put(projectId.toString(), Pair.of(true, new ArrayList<>()));
-
-        when(profilesController.checkProfileByName(profileId, profileName)).thenReturn(true);
-
-        // Perform request
-        RequestBuilder requestBuilder = MockMvcRequestBuilders
-                .multipart("/api/profiles/{id}", profileId)
-                .param("name", profileName)
-                .param("description", profileDescription)
-                .param("quality_level", qualityLevel.toString())
-                .param("dsi_view", dsiView.toString())
-                .param("dqf_view", dqfView.toString())
-                .param("m_view", mView.toString())
-                .param("qm_view", qmView.toString())
-                .param("projects_info", projects_info)
-                .with(new RequestPostProcessor() {
-                    @Override
-                    public MockHttpServletRequest postProcessRequest(MockHttpServletRequest request) {
-                        request.setMethod("PUT");
-                        return request;
-                    }
-                });
-
-        this.mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andDo(document("profiles/update",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        requestParameters(
-                                parameterWithName("name")
-                                        .description("Profile name"),
-                                parameterWithName("description")
-                                        .description("Profile description"),
-                                parameterWithName("quality_level")
-                                        .description("One of three possible options: ALL, FACTOR_METRIC, METRICS"),
-                                parameterWithName("dsi_view")
-                                        .description("Value for default Detailed Strategic Indicators view representation: Radar, Stacked or Polar"),
-                                parameterWithName("dqf_view")
-                                        .description("Value for default Detailed Factors view representation: Radar, Stacked or Polar"),
-                                parameterWithName("m_view")
-                                        .description("Value for default Metrics view representation: Gauge or Slider"),
-                                parameterWithName("qm_view")
-                                        .description("Value for default Quality Model view representation: Graph or Sunburst"),
-                                parameterWithName("projects_info")
-                                        .description("Array of JSON object { prj: project identifier, all_si: are all strategic indicators shown? , si: list of selected strategic indicators }"))
-                ));
-
-        // Verify mock interactions
-        verify(profilesController, times(1)).checkProfileByName(profileId, profileName);
-        verify(profilesController, times(1)).updateProfile(profileId, profileName, profileDescription, qualityLevel, dsiView, dqfView, mView, qmView, projectsInfoMap);
-
-        verifyNoMoreInteractions(profilesController);
-    }
-
-    @Test
-    public void updateProfileNameAlreadyExists() throws Exception {
-        Long projectId = 1L;
-        String projectExternalId = "test";
-        String projectName = "Test";
-        String projectDescription = "Test project";
-        boolean active = true;
-        String projectBacklogId = "999";
-        // PROJECT DTO
-        Map<DataSource, DTOProjectIdentity> dtoProjectIdentities = new HashMap<>();
-        for(DataSource source: DataSource.values()){
-            dtoProjectIdentities.put(source,new DTOProjectIdentity(source, "test"));
+        @Before
+        public void setUp() {
+                MockitoAnnotations.initMocks(this);
+                mockMvc = MockMvcBuilders
+                                .standaloneSetup(profileController)
+                                .apply(documentationConfiguration(this.restDocumentation))
+                                .build();
         }
-        DTOProject dtoProject = new DTOProject(projectId, projectExternalId, projectName, projectDescription, null,
-                active, projectBacklogId, false,dtoProjectIdentities, false);
 
-        List<DTOProject> dtoProjectList = new ArrayList<>();
-        dtoProjectList.add(dtoProject);
+        @Test
+        public void getProfiles() throws Exception {
+                Long projectId = 1L;
+                String projectExternalId = "test";
+                String projectName = "Test";
+                String projectDescription = "Test project";
+                boolean active = true;
+                String projectBacklogId = "999";
 
-        Long profileId = 1L;
-        String profileName = "Test";
-        String profileDescription = "Test profile";
-        Profile.QualityLevel qualityLevel = Profile.QualityLevel.valueOf("ALL");
-        Profile.DetailedViews dsiView = Profile.DetailedViews.valueOf("Radar");
-        Profile.DetailedViews dqfView = Profile.DetailedViews.valueOf("Radar");
-        Profile.MetricsView mView = Profile.MetricsView.valueOf("Gauge");
-        Profile.QualityModelView qmView = Profile.QualityModelView.valueOf("Graph");
+                // PROJECT DTOS
+                String identityURL = "githubURL";
+                Map<DataSource, DTOProjectIdentity> dtoProjectIdentities = new HashMap<>();
+                dtoProjectIdentities.put(DataSource.GITHUB, new DTOProjectIdentity(DataSource.GITHUB, identityURL));
+                DTOProject dtoProject = new DTOProject(projectId, projectExternalId, projectName, projectDescription,
+                                null, active, projectBacklogId, false, dtoProjectIdentities, false, null);
 
-        Pair<Long, Boolean> pair = Pair.of(projectId, true);
-        List<Pair<Long, Boolean>> allSIs = new ArrayList<>();
-        allSIs.add(pair);
+                List<DTOProject> dtoProjectList = new ArrayList<>();
+                dtoProjectList.add(dtoProject);
 
-        String projects_info;
-        JSONArray array = new JSONArray();
-        JSONObject item = new JSONObject();
-        item.put("prj", projectId);
-        item.put("all_si", true);
-        item.put("si", new ArrayList<>());
-        array.add(item);
-        projects_info = array.toString();
+                Long profileId = 1L;
+                String profileName = "Test";
+                String profileDescription = "Test profile";
+                String qualityLevel = "ALL";
+                String dsiView = "Radar";
+                String dqfView = "Radar";
+                String mView = "Gauge";
+                String qmView = "Graph";
 
-        when(profilesController.checkProfileByName(profileId, profileName)).thenReturn(false);
+                Pair<Long, Boolean> pair = Pair.of(projectId, true);
+                List<Pair<Long, Boolean>> allSIs = new ArrayList<>();
+                allSIs.add(pair);
 
-        // Perform request
-        RequestBuilder requestBuilder = MockMvcRequestBuilders
-                .multipart("/api/profiles/{id}", profileId)
-                .param("name", profileName)
-                .param("description", profileDescription)
-                .param("quality_level", qualityLevel.toString())
-                .param("dsi_view", dsiView.toString())
-                .param("dqf_view", dqfView.toString())
-                .param("m_view", mView.toString())
-                .param("qm_view", qmView.toString())
-                .param("projects_info", projects_info)
-                .with(new RequestPostProcessor() {
-                    @Override
-                    public MockHttpServletRequest postProcessRequest(MockHttpServletRequest request) {
-                        request.setMethod("PUT");
-                        return request;
-                    }
-                });
+                DTOProfile dtoProfile = new DTOProfile(profileId, profileName, profileDescription, qualityLevel,
+                                dsiView, dqfView, mView, qmView, dtoProjectList, allSIs);
+                List<DTOProfile> dtoProfileList = new ArrayList<>();
+                dtoProfileList.add(dtoProfile);
 
-        this.mockMvc.perform(requestBuilder)
-                .andExpect(status().isConflict())
-                .andDo(document("profiles/update-error",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        requestParameters(
-                                parameterWithName("name")
-                                        .description("Profile name"),
-                                parameterWithName("description")
-                                        .description("Profile description"),
-                                parameterWithName("quality_level")
-                                        .description("One of three possible options: ALL, FACTOR_METRIC, METRICS"),
-                                parameterWithName("dsi_view")
-                                        .description("Value for default Detailed Strategic Indicators view representation: Radar, Stacked or Polar"),
-                                parameterWithName("dqf_view")
-                                        .description("Value for default Detailed Factors view representation: Radar, Stacked or Polar"),
-                                parameterWithName("m_view")
-                                        .description("Value for default Metrics view representation: Gauge or Slider"),
-                                parameterWithName("qm_view")
-                                        .description("Value for default Quality Model view representation: Graph or Sunburst"),
-                                parameterWithName("projects_info")
-                                        .description("Array of JSON object { prj: project identifier, all_si: are all strategic indicators shown? , si: list of selected strategic indicators }"))
-                ));
+                when(profilesController.getProfiles()).thenReturn(dtoProfileList);
 
-        // Verify mock interactions
-        verify(profilesController, times(1)).checkProfileByName(profileId, profileName);
-        verifyNoMoreInteractions(profilesController);
-    }
+                // Perform request
+                RequestBuilder requestBuilder = MockMvcRequestBuilders
+                                .get("/api/profiles");
 
-    @Test
-    public void newProfile() throws Exception {
-        Long projectId = 1L;
-        String projectExternalId = "test";
-        String projectName = "Test";
-        String projectDescription = "Test project";
-        boolean active = true;
-        String projectBacklogId = "999";
-        // PROJECT DTO
-        Map<DataSource, DTOProjectIdentity> dtoProjectIdentities = new HashMap<>();
-        for(DataSource source: DataSource.values()){
-            dtoProjectIdentities.put(source,new DTOProjectIdentity(source, "test"));
+                this.mockMvc.perform(requestBuilder)
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$", hasSize(1)))
+                                .andExpect(jsonPath("$[0].id", is(profileId.intValue())))
+                                .andExpect(jsonPath("$[0].name", is(profileName)))
+                                .andExpect(jsonPath("$[0].description", is(profileDescription)))
+                                .andExpect(jsonPath("$[0].qualityLevel", is(qualityLevel)))
+                                .andExpect(jsonPath("$[0].dsiView", is(dsiView)))
+                                .andExpect(jsonPath("$[0].dqfView", is(dqfView)))
+                                .andExpect(jsonPath("$[0].mView", is(mView)))
+                                .andExpect(jsonPath("$[0].qmView", is(qmView)))
+                                .andExpect(jsonPath("$[0].projects", hasSize(1)))
+                                .andExpect(jsonPath("$[0].projects[0].id", is(projectId.intValue())))
+                                .andExpect(jsonPath("$[0].projects[0].externalId", is(projectExternalId)))
+                                .andExpect(jsonPath("$[0].projects[0].name", is(projectName)))
+                                .andExpect(jsonPath("$[0].projects[0].description", is(projectDescription)))
+                                .andExpect(jsonPath("$[0].projects[0].logo", is(nullValue())))
+                                .andExpect(jsonPath("$[0].projects[0].active", is(active)))
+                                .andExpect(jsonPath("$[0].projects[0].backlogId", is(projectBacklogId)))
+                                .andExpect(jsonPath("$[0].projects[0].identities.GITHUB.dataSource",
+                                                is(DataSource.GITHUB.toString())))
+                                .andExpect(jsonPath("$[0].projects[0].identities.GITHUB.url", is(identityURL)))
+                                .andExpect(jsonPath("$[0].projects[0].isGlobal", is(false)))
+                                .andExpect(jsonPath("$[0].projects[0].students", is(nullValue())))
+                                .andExpect(jsonPath("$[0].allSIs", hasSize(1)))
+                                .andExpect(jsonPath("$[0].allSIs[0].first", is(projectId.intValue())))
+                                .andExpect(jsonPath("$[0].allSIs[0].second", is(true)))
+                                .andDo(document("profiles/all",
+                                                preprocessRequest(prettyPrint()),
+                                                preprocessResponse(prettyPrint()),
+                                                responseFields(
+                                                                fieldWithPath("[].id")
+                                                                                .description("Profile identifier"),
+                                                                fieldWithPath("[].name")
+                                                                                .description("Profile name"),
+                                                                fieldWithPath("[].description")
+                                                                                .description("Profile description"),
+                                                                fieldWithPath("[].qualityLevel")
+                                                                                .description("Profile quality level"),
+                                                                fieldWithPath("[].dsiView")
+                                                                                .description("Default visualization for Detailed Strategic Indicators view"),
+                                                                fieldWithPath("[].dqfView")
+                                                                                .description("Default visualization for Detailed Factors view"),
+                                                                fieldWithPath("[].mView")
+                                                                                .description("Default visualization for Metrics view"),
+                                                                fieldWithPath("[].qmView")
+                                                                                .description("Default visualization for Quality Model view"),
+                                                                fieldWithPath("[].projects")
+                                                                                .description("List of all the projects which compose the profile"),
+                                                                fieldWithPath("[].projects[].id")
+                                                                                .description("Project identifier"),
+                                                                fieldWithPath("[].projects[].externalId")
+                                                                                .description("Project external identifier"),
+                                                                fieldWithPath("[].projects[].name")
+                                                                                .description("Project name"),
+                                                                fieldWithPath("[].projects[].description")
+                                                                                .description("Project description"),
+                                                                fieldWithPath("[].projects[].logo")
+                                                                                .description("Project logo file"),
+                                                                fieldWithPath("[].projects[].active")
+                                                                                .description("Is an active project?"),
+                                                                fieldWithPath("[].projects[].backlogId")
+                                                                                .description("Project identifier in the backlog"),
+                                                                fieldWithPath("[].projects[].anonymized")
+                                                                                .description("If project students are anonymized"),
+                                                                fieldWithPath("[].projects[].identities")
+                                                                                .description("Project identities"),
+                                                                fieldWithPath("[].projects[].identities.GITHUB")
+                                                                                .description("Example of identity, URLs separated by a ';'"),
+                                                                fieldWithPath("[].projects[].identities.GITHUB.dataSource")
+                                                                                .description("Identity data source. Example: Github, Taiga, PRT"),
+                                                                fieldWithPath("[].projects[].identities.GITHUB.url")
+                                                                                .description("Identity URL"),
+                                                                fieldWithPath("[].projects[].identities.GITHUB.project")
+                                                                                .description("Identity project"),
+                                                                fieldWithPath("[].projects[].isGlobal")
+                                                                                .description("Is a global project?"),
+                                                                fieldWithPath("[].projects[].students")
+                                                                                .description("Students of the project"),
+                                                                fieldWithPath("[].projects[].subject")
+                                                                                .description("Project subject").optional(),
+                                                                fieldWithPath("[].allSIs")
+                                                                                .description("List of pairs which specify for each project of profile, if it show all strategic indicators or not"),
+                                                                fieldWithPath("[].allSIs[].first")
+                                                                                .description("Project identifier"),
+                                                                fieldWithPath("[].allSIs[].second")
+                                                                                .description("Are all strategic indicators shown?"))));
+
+                // Verify mock interactions
+                verify(profilesController, times(1)).getProfiles();
+                verifyNoMoreInteractions(profilesController);
         }
-        DTOProject dtoProject = new DTOProject(projectId, projectExternalId, projectName, projectDescription, null,
-                active, projectBacklogId, false,dtoProjectIdentities, false);
 
-        List<DTOProject> dtoProjectList = new ArrayList<>();
-        dtoProjectList.add(dtoProject);
+        @Test
+        public void getProfileById() throws Exception {
+                Long projectId = 1L;
+                String projectExternalId = "test";
+                String projectName = "Test";
+                String projectDescription = "Test project";
+                boolean active = true;
+                String projectBacklogId = "999";
 
-        String profileName = "Test";
-        String profileDescription = "Test profile";
-        Profile.QualityLevel qualityLevel = Profile.QualityLevel.valueOf("ALL");
-        Profile.DetailedViews dsiView = Profile.DetailedViews.valueOf("Radar");
-        Profile.DetailedViews dqfView = Profile.DetailedViews.valueOf("Radar");
-        Profile.MetricsView mView = Profile.MetricsView.valueOf("Gauge");
-        Profile.QualityModelView qmView = Profile.QualityModelView.valueOf("Graph");
+                String identityURL = "GITHUBURL";
+                Map<DataSource, DTOProjectIdentity> dtoProjectIdentities = new HashMap<>();
+                dtoProjectIdentities.put(DataSource.GITHUB, new DTOProjectIdentity(DataSource.GITHUB, identityURL));
 
-        Pair<Long, Boolean> pair = Pair.of(projectId, true);
-        List<Pair<Long, Boolean>> allSIs = new ArrayList<>();
-        allSIs.add(pair);
+                DTOProject dtoProject = new DTOProject(projectId, projectExternalId, projectName, projectDescription,
+                                null,
+                                active, projectBacklogId, false, dtoProjectIdentities, false, null);
 
-        String projects_info;
-        JSONArray array = new JSONArray();
-        JSONObject item = new JSONObject();
-        item.put("prj", projectId);
-        item.put("all_si", true);
-        item.put("si", new ArrayList<>());
-        array.add(item);
-        projects_info = array.toString();
+                List<DTOProject> dtoProjectList = new ArrayList<>();
+                dtoProjectList.add(dtoProject);
 
-        Map<String, Pair<Boolean, List<String>>> projectsInfoMap = new HashMap<>();
-        projectsInfoMap.put(projectId.toString(), Pair.of(true, new ArrayList<>()));
+                Long profileId = 1L;
+                String profileName = "Test";
+                String profileDescription = "Test profile";
+                String qualityLevel = "ALL";
+                String dsiView = "Radar";
+                String dqfView = "Radar";
+                String mView = "Gauge";
+                String qmView = "Graph";
 
-        when(profilesController.checkNewProfileByName(profileName)).thenReturn(true);
+                Pair<Long, Boolean> pair = Pair.of(projectId, true);
+                List<Pair<Long, Boolean>> allSIs = new ArrayList<>();
+                allSIs.add(pair);
 
-        // Perform request
-        RequestBuilder requestBuilder = MockMvcRequestBuilders
-                .multipart("/api/profiles")
-                .param("name", profileName)
-                .param("description", profileDescription)
-                .param("quality_level", qualityLevel.toString())
-                .param("dsi_view", dsiView.toString())
-                .param("dqf_view", dqfView.toString())
-                .param("m_view", mView.toString())
-                .param("qm_view", qmView.toString())
-                .param("projects_info", projects_info);
+                DTOProfile dtoProfile = new DTOProfile(profileId, profileName, profileDescription, qualityLevel,
+                                dsiView, dqfView, mView, qmView, dtoProjectList, allSIs);
 
-        this.mockMvc.perform(requestBuilder)
-                .andExpect(status().isCreated())
-                .andDo(document("profiles/add",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        requestParameters(
-                                parameterWithName("name")
-                                        .description("Profile name"),
-                                parameterWithName("description")
-                                        .description("Profile description"),
-                                parameterWithName("quality_level")
-                                        .description("One of three possible options: ALL, FACTOR_METRIC, METRICS"),
-                                parameterWithName("dsi_view")
-                                        .description("Value for default Detailed Strategic Indicators view representation: Radar, Stacked or Polar"),
-                                parameterWithName("dqf_view")
-                                        .description("Value for default Detailed Factors view representation: Radar, Stacked or Polar"),
-                                parameterWithName("m_view")
-                                        .description("Value for default Metrics view representation: Gauge or Slider"),
-                                parameterWithName("qm_view")
-                                        .description("Value for default Quality Model view representation: Graph or Sunburst"),
-                                parameterWithName("projects_info")
-                                        .description("Array of JSON object { prj: project identifier, all_si: are all strategic indicators shown? , si: list of selected strategic indicators }"))
-                ));
+                when(profilesController.getProfileById(profileId.toString())).thenReturn(dtoProfile);
 
-        // Verify mock interactions
-        verify(profilesController, times(1)).checkNewProfileByName(profileName);
-        verify(profilesController, times(1)).newProfile(profileName, profileDescription, qualityLevel, dsiView, dqfView, mView, qmView, projectsInfoMap);
+                // Perform request
+                RequestBuilder requestBuilder = RestDocumentationRequestBuilders
+                                .get("/api/profiles/{id}", profileId);
 
-        verifyNoMoreInteractions(profilesController);
-    }
+                this.mockMvc.perform(requestBuilder)
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.id", is(profileId.intValue())))
+                                .andExpect(jsonPath("$.name", is(profileName)))
+                                .andExpect(jsonPath("$.description", is(profileDescription)))
+                                .andExpect(jsonPath("$.qualityLevel", is(qualityLevel)))
+                                .andExpect(jsonPath("$.dsiView", is(dsiView)))
+                                .andExpect(jsonPath("$.dqfView", is(dqfView)))
+                                .andExpect(jsonPath("$.mView", is(mView)))
+                                .andExpect(jsonPath("$.qmView", is(qmView)))
+                                .andExpect(jsonPath("$.projects", hasSize(1)))
+                                .andExpect(jsonPath("$.projects[0].id", is(projectId.intValue())))
+                                .andExpect(jsonPath("$.projects[0].externalId", is(projectExternalId)))
+                                .andExpect(jsonPath("$.projects[0].name", is(projectName)))
+                                .andExpect(jsonPath("$.projects[0].description", is(projectDescription)))
+                                .andExpect(jsonPath("$.projects[0].logo", is(nullValue())))
+                                .andExpect(jsonPath("$.projects[0].active", is(active)))
+                                .andExpect(jsonPath("$.projects[0].backlogId", is(projectBacklogId)))
+                                .andExpect(jsonPath("$.projects[0].identities.GITHUB.dataSource",
+                                                is(DataSource.GITHUB.toString())))
+                                .andExpect(jsonPath("$.projects[0].identities.GITHUB.url", is(identityURL)))
+                                .andExpect(jsonPath("$.projects[0].isGlobal", is(false)))
+                                .andExpect(jsonPath("$.projects[0].students", is(nullValue())))
+                                .andExpect(jsonPath("$.allSIs", hasSize(1)))
+                                .andExpect(jsonPath("$.allSIs[0].first", is(projectId.intValue())))
+                                .andExpect(jsonPath("$.allSIs[0].second", is(true)))
+                                .andDo(document("profiles/single",
+                                                preprocessRequest(prettyPrint()),
+                                                preprocessResponse(prettyPrint()),
+                                                pathParameters(
+                                                                parameterWithName("id")
+                                                                                .description("Profile identifier")),
+                                                responseFields(
+                                                                fieldWithPath("id")
+                                                                                .description("Profile identifier"),
+                                                                fieldWithPath("name")
+                                                                                .description("Profile name"),
+                                                                fieldWithPath("description")
+                                                                                .description("Profile description"),
+                                                                fieldWithPath("qualityLevel")
+                                                                                .description("Profile quality level"),
+                                                                fieldWithPath("dsiView")
+                                                                                .description("Default visualization for Detailed Strategic Indicators view"),
+                                                                fieldWithPath("dqfView")
+                                                                                .description("Default visualization for Detailed Factors view"),
+                                                                fieldWithPath("mView")
+                                                                                .description("Default visualization for Metrics view"),
+                                                                fieldWithPath("qmView")
+                                                                                .description("Default visualization for Quality Model view"),
+                                                                fieldWithPath("projects")
+                                                                                .description("List of all the projects which compose the profile"),
+                                                                fieldWithPath("projects[].id")
+                                                                                .description("Project identifier"),
+                                                                fieldWithPath("projects[].externalId")
+                                                                                .description("Project external identifier"),
+                                                                fieldWithPath("projects[].name")
+                                                                                .description("Project name"),
+                                                                fieldWithPath("projects[].description")
+                                                                                .description("Project description"),
+                                                                fieldWithPath("projects[].logo")
+                                                                                .description("Project logo file"),
+                                                                fieldWithPath("projects[].active")
+                                                                                .description("Is an active project?"),
+                                                                fieldWithPath("projects[].backlogId")
+                                                                                .description("Project identifier in the backlog"),
+                                                                fieldWithPath("projects[].anonymized")
+                                                                                .description("If project students are anonymized"),
+                                                                fieldWithPath("projects[].identities")
+                                                                                .description("Project identities"),
+                                                                fieldWithPath("projects[].identities.GITHUB")
+                                                                                .description("Example of identity, URLs separated by a ';'"),
+                                                                fieldWithPath("projects[].identities.GITHUB.dataSource")
+                                                                                .description("Identity data source. Example: Github, Taiga, PRT"),
+                                                                fieldWithPath("projects[].identities.GITHUB.url")
+                                                                                .description("Identity URL"),
+                                                                fieldWithPath("projects[].identities.GITHUB.project")
+                                                                                .description("Identity project"),
+                                                                fieldWithPath("projects[].isGlobal")
+                                                                                .description("Is a global project?"),
+                                                                fieldWithPath("projects[].students")
+                                                                                .description("Students of the project"),
+                                                                fieldWithPath("projects[].subject")
+                                                                                .description("Project subject").optional(),
+                                                                fieldWithPath("allSIs")
+                                                                                .description("List of pairs which specify for each project of profile, if it show all strategic indicators or not"),
+                                                                fieldWithPath("allSIs[].first")
+                                                                                .description("Project identifier"),
+                                                                fieldWithPath("allSIs[].second")
+                                                                                .description("Are all strategic indicators shown?"))));
 
-    @Test
-    public void newProductNameAlreadyExists() throws Exception {
-        Long projectId = 1L;
-        String projectExternalId = "test";
-        String projectName = "Test";
-        String projectDescription = "Test project";
-        boolean active = true;
-        String projectBacklogId = "999";
-        // PROJECT DTO
-        Map<DataSource, DTOProjectIdentity> dtoProjectIdentities = new HashMap<>();
-        for(DataSource source: DataSource.values()){
-            dtoProjectIdentities.put(source,new DTOProjectIdentity(source, "test"));
+                // Verify mock interactions
+                verify(profilesController, times(1)).getProfileById(profileId.toString());
+                verifyNoMoreInteractions(profilesController);
         }
-        DTOProject dtoProject = new DTOProject(projectId, projectExternalId, projectName, projectDescription, null,
-                active, projectBacklogId, false,dtoProjectIdentities, false);
 
-        List<DTOProject> dtoProjectList = new ArrayList<>();
-        dtoProjectList.add(dtoProject);
+        @Test
+        public void updateProfile() throws Exception {
+                Long projectId = 1L;
+                String projectExternalId = "test";
+                String projectName = "Test";
+                String projectDescription = "Test project";
+                boolean active = true;
+                String projectBacklogId = "999";
 
-        String profileName = "Test";
-        String profileDescription = "Test profile";
-        Profile.QualityLevel qualityLevel = Profile.QualityLevel.valueOf("ALL");
-        Profile.DetailedViews dsiView = Profile.DetailedViews.valueOf("Radar");
-        Profile.DetailedViews dqfView = Profile.DetailedViews.valueOf("Radar");
-        Profile.MetricsView mView = Profile.MetricsView.valueOf("Gauge");
-        Profile.QualityModelView qmView = Profile.QualityModelView.valueOf("Graph");
+                // PROJECT DTO
+                Map<DataSource, DTOProjectIdentity> dtoProjectIdentities = new HashMap<>();
+                for (DataSource source : DataSource.values()) {
+                        dtoProjectIdentities.put(source, new DTOProjectIdentity(source, "test"));
+                }
+                DTOProject dtoProject = new DTOProject(projectId, projectExternalId, projectName, projectDescription,
+                                null,
+                                active, projectBacklogId, false, dtoProjectIdentities, false, null);
 
-        Pair<Long, Boolean> pair = Pair.of(projectId, true);
-        List<Pair<Long, Boolean>> allSIs = new ArrayList<>();
-        allSIs.add(pair);
+                List<DTOProject> dtoProjectList = new ArrayList<>();
+                dtoProjectList.add(dtoProject);
 
-        String projects_info;
-        JSONArray array = new JSONArray();
-        JSONObject item = new JSONObject();
-        item.put("prj", projectId);
-        item.put("all_si", true);
-        item.put("si", new ArrayList<>());
-        array.add(item);
-        projects_info = array.toString();
+                Long profileId = 1L;
+                String profileName = "Test";
+                String profileDescription = "Test profile";
+                Profile.QualityLevel qualityLevel = Profile.QualityLevel.valueOf("ALL");
+                Profile.DetailedViews dsiView = Profile.DetailedViews.valueOf("Radar");
+                Profile.DetailedViews dqfView = Profile.DetailedViews.valueOf("Radar");
+                Profile.MetricsView mView = Profile.MetricsView.valueOf("Gauge");
+                Profile.QualityModelView qmView = Profile.QualityModelView.valueOf("Graph");
 
-        when(profilesController.checkNewProfileByName(profileName)).thenReturn(false);
+                Pair<Long, Boolean> pair = Pair.of(projectId, true);
+                List<Pair<Long, Boolean>> allSIs = new ArrayList<>();
+                allSIs.add(pair);
 
-        // Perform request
-        RequestBuilder requestBuilder = MockMvcRequestBuilders
-                .multipart("/api/profiles")
-                .param("name", profileName)
-                .param("description", profileDescription)
-                .param("quality_level", qualityLevel.toString())
-                .param("dsi_view", dsiView.toString())
-                .param("dqf_view", dqfView.toString())
-                .param("m_view", mView.toString())
-                .param("qm_view", qmView.toString())
-                .param("projects_info", projects_info);
+                String projects_info;
+                JSONArray array = new JSONArray();
+                JSONObject item = new JSONObject();
+                item.put("prj", projectId);
+                item.put("all_si", true);
+                item.put("si", new ArrayList<>());
+                array.add(item);
+                projects_info = array.toString();
 
-        this.mockMvc.perform(requestBuilder)
-                .andExpect(status().isConflict())
-                .andDo(document("profiles/add-error",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint())
-                ));
+                Map<String, Pair<Boolean, List<String>>> projectsInfoMap = new HashMap<>();
+                projectsInfoMap.put(projectId.toString(), Pair.of(true, new ArrayList<>()));
 
-        // Verify mock interactions
-        verify(profilesController, times(1)).checkNewProfileByName(profileName);
-        verifyNoMoreInteractions(profilesController);
-    }
+                when(profilesController.checkProfileByName(profileId, profileName)).thenReturn(true);
 
-    @Test
-    public void deleteProduct() throws Exception {
-        Long profileId = 1L;
+                // Perform request
+                RequestBuilder requestBuilder = MockMvcRequestBuilders
+                                .multipart("/api/profiles/{id}", profileId)
+                                .param("name", profileName)
+                                .param("description", profileDescription)
+                                .param("quality_level", qualityLevel.toString())
+                                .param("dsi_view", dsiView.toString())
+                                .param("dqf_view", dqfView.toString())
+                                .param("m_view", mView.toString())
+                                .param("qm_view", qmView.toString())
+                                .param("projects_info", projects_info)
+                                .with(new RequestPostProcessor() {
+                                        @Override
+                                        public MockHttpServletRequest postProcessRequest(
+                                                        MockHttpServletRequest request) {
+                                                request.setMethod("PUT");
+                                                return request;
+                                        }
+                                });
 
-        // Perform request
-        RequestBuilder requestBuilder = RestDocumentationRequestBuilders
-                .delete("/api/profiles/{id}", profileId);
+                this.mockMvc.perform(requestBuilder)
+                                .andExpect(status().isOk())
+                                .andDo(document("profiles/update",
+                                                preprocessRequest(prettyPrint()),
+                                                preprocessResponse(prettyPrint()),
+                                                requestParameters(
+                                                                parameterWithName("name")
+                                                                                .description("Profile name"),
+                                                                parameterWithName("description")
+                                                                                .description("Profile description"),
+                                                                parameterWithName("quality_level")
+                                                                                .description("One of three possible options: ALL, FACTOR_METRIC, METRICS"),
+                                                                parameterWithName("dsi_view")
+                                                                                .description("Value for default Detailed Strategic Indicators view representation: Radar, Stacked or Polar"),
+                                                                parameterWithName("dqf_view")
+                                                                                .description("Value for default Detailed Factors view representation: Radar, Stacked or Polar"),
+                                                                parameterWithName("m_view")
+                                                                                .description("Value for default Metrics view representation: Gauge or Slider"),
+                                                                parameterWithName("qm_view")
+                                                                                .description("Value for default Quality Model view representation: Graph or Sunburst"),
+                                                                parameterWithName("projects_info")
+                                                                                .description("Array of JSON object { prj: project identifier, all_si: are all strategic indicators shown? , si: list of selected strategic indicators }"))));
 
-        this.mockMvc.perform(requestBuilder)
-                .andExpect(status().isOk())
-                .andDo(document("profiles/delete",
-                        preprocessRequest(prettyPrint()),
-                        preprocessResponse(prettyPrint()),
-                        pathParameters(
-                                parameterWithName("id")
-                                        .description("Profile identifier")
-                        )
-                ));
+                // Verify mock interactions
+                verify(profilesController, times(1)).checkProfileByName(profileId, profileName);
+                verify(profilesController, times(1)).updateProfile(profileId, profileName, profileDescription,
+                                qualityLevel, dsiView, dqfView, mView, qmView, projectsInfoMap);
 
-        // Verify mock interactions
-        verify(profilesController, times(1)).deleteProfile(profileId);
-        verifyNoMoreInteractions(profilesController);
-    }
+                verifyNoMoreInteractions(profilesController);
+        }
+
+        @Test
+        public void updateProfileNameAlreadyExists() throws Exception {
+                Long projectId = 1L;
+                String projectExternalId = "test";
+                String projectName = "Test";
+                String projectDescription = "Test project";
+                boolean active = true;
+                String projectBacklogId = "999";
+                // PROJECT DTO
+                Map<DataSource, DTOProjectIdentity> dtoProjectIdentities = new HashMap<>();
+                for (DataSource source : DataSource.values()) {
+                        dtoProjectIdentities.put(source, new DTOProjectIdentity(source, "test"));
+                }
+                DTOProject dtoProject = new DTOProject(projectId, projectExternalId, projectName, projectDescription,
+                                null,
+                                active, projectBacklogId, false, dtoProjectIdentities, false, null);
+
+                List<DTOProject> dtoProjectList = new ArrayList<>();
+                dtoProjectList.add(dtoProject);
+
+                Long profileId = 1L;
+                String profileName = "Test";
+                String profileDescription = "Test profile";
+                Profile.QualityLevel qualityLevel = Profile.QualityLevel.valueOf("ALL");
+                Profile.DetailedViews dsiView = Profile.DetailedViews.valueOf("Radar");
+                Profile.DetailedViews dqfView = Profile.DetailedViews.valueOf("Radar");
+                Profile.MetricsView mView = Profile.MetricsView.valueOf("Gauge");
+                Profile.QualityModelView qmView = Profile.QualityModelView.valueOf("Graph");
+
+                Pair<Long, Boolean> pair = Pair.of(projectId, true);
+                List<Pair<Long, Boolean>> allSIs = new ArrayList<>();
+                allSIs.add(pair);
+
+                String projects_info;
+                JSONArray array = new JSONArray();
+                JSONObject item = new JSONObject();
+                item.put("prj", projectId);
+                item.put("all_si", true);
+                item.put("si", new ArrayList<>());
+                array.add(item);
+                projects_info = array.toString();
+
+                when(profilesController.checkProfileByName(profileId, profileName)).thenReturn(false);
+
+                // Perform request
+                RequestBuilder requestBuilder = MockMvcRequestBuilders
+                                .multipart("/api/profiles/{id}", profileId)
+                                .param("name", profileName)
+                                .param("description", profileDescription)
+                                .param("quality_level", qualityLevel.toString())
+                                .param("dsi_view", dsiView.toString())
+                                .param("dqf_view", dqfView.toString())
+                                .param("m_view", mView.toString())
+                                .param("qm_view", qmView.toString())
+                                .param("projects_info", projects_info)
+                                .with(new RequestPostProcessor() {
+                                        @Override
+                                        public MockHttpServletRequest postProcessRequest(
+                                                        MockHttpServletRequest request) {
+                                                request.setMethod("PUT");
+                                                return request;
+                                        }
+                                });
+
+                this.mockMvc.perform(requestBuilder)
+                                .andExpect(status().isConflict())
+                                .andDo(document("profiles/update-error",
+                                                preprocessRequest(prettyPrint()),
+                                                preprocessResponse(prettyPrint()),
+                                                requestParameters(
+                                                                parameterWithName("name")
+                                                                                .description("Profile name"),
+                                                                parameterWithName("description")
+                                                                                .description("Profile description"),
+                                                                parameterWithName("quality_level")
+                                                                                .description("One of three possible options: ALL, FACTOR_METRIC, METRICS"),
+                                                                parameterWithName("dsi_view")
+                                                                                .description("Value for default Detailed Strategic Indicators view representation: Radar, Stacked or Polar"),
+                                                                parameterWithName("dqf_view")
+                                                                                .description("Value for default Detailed Factors view representation: Radar, Stacked or Polar"),
+                                                                parameterWithName("m_view")
+                                                                                .description("Value for default Metrics view representation: Gauge or Slider"),
+                                                                parameterWithName("qm_view")
+                                                                                .description("Value for default Quality Model view representation: Graph or Sunburst"),
+                                                                parameterWithName("projects_info")
+                                                                                .description("Array of JSON object { prj: project identifier, all_si: are all strategic indicators shown? , si: list of selected strategic indicators }"))));
+
+                // Verify mock interactions
+                verify(profilesController, times(1)).checkProfileByName(profileId, profileName);
+                verifyNoMoreInteractions(profilesController);
+        }
+
+        @Test
+        public void newProfile() throws Exception {
+                Long projectId = 1L;
+                String projectExternalId = "test";
+                String projectName = "Test";
+                String projectDescription = "Test project";
+                boolean active = true;
+                String projectBacklogId = "999";
+                // PROJECT DTO
+                Map<DataSource, DTOProjectIdentity> dtoProjectIdentities = new HashMap<>();
+                for (DataSource source : DataSource.values()) {
+                        dtoProjectIdentities.put(source, new DTOProjectIdentity(source, "test"));
+                }
+                DTOProject dtoProject = new DTOProject(projectId, projectExternalId, projectName, projectDescription,
+                                null,
+                                active, projectBacklogId, false, dtoProjectIdentities, false, null);
+
+                List<DTOProject> dtoProjectList = new ArrayList<>();
+                dtoProjectList.add(dtoProject);
+
+                String profileName = "Test";
+                String profileDescription = "Test profile";
+                Profile.QualityLevel qualityLevel = Profile.QualityLevel.valueOf("ALL");
+                Profile.DetailedViews dsiView = Profile.DetailedViews.valueOf("Radar");
+                Profile.DetailedViews dqfView = Profile.DetailedViews.valueOf("Radar");
+                Profile.MetricsView mView = Profile.MetricsView.valueOf("Gauge");
+                Profile.QualityModelView qmView = Profile.QualityModelView.valueOf("Graph");
+
+                Pair<Long, Boolean> pair = Pair.of(projectId, true);
+                List<Pair<Long, Boolean>> allSIs = new ArrayList<>();
+                allSIs.add(pair);
+
+                String projects_info;
+                JSONArray array = new JSONArray();
+                JSONObject item = new JSONObject();
+                item.put("prj", projectId);
+                item.put("all_si", true);
+                item.put("si", new ArrayList<>());
+                array.add(item);
+                projects_info = array.toString();
+
+                Map<String, Pair<Boolean, List<String>>> projectsInfoMap = new HashMap<>();
+                projectsInfoMap.put(projectId.toString(), Pair.of(true, new ArrayList<>()));
+
+                when(profilesController.checkNewProfileByName(profileName)).thenReturn(true);
+
+                // Perform request
+                RequestBuilder requestBuilder = MockMvcRequestBuilders
+                                .multipart("/api/profiles")
+                                .param("name", profileName)
+                                .param("description", profileDescription)
+                                .param("quality_level", qualityLevel.toString())
+                                .param("dsi_view", dsiView.toString())
+                                .param("dqf_view", dqfView.toString())
+                                .param("m_view", mView.toString())
+                                .param("qm_view", qmView.toString())
+                                .param("projects_info", projects_info);
+
+                this.mockMvc.perform(requestBuilder)
+                                .andExpect(status().isCreated())
+                                .andDo(document("profiles/add",
+                                                preprocessRequest(prettyPrint()),
+                                                preprocessResponse(prettyPrint()),
+                                                requestParameters(
+                                                                parameterWithName("name")
+                                                                                .description("Profile name"),
+                                                                parameterWithName("description")
+                                                                                .description("Profile description"),
+                                                                parameterWithName("quality_level")
+                                                                                .description("One of three possible options: ALL, FACTOR_METRIC, METRICS"),
+                                                                parameterWithName("dsi_view")
+                                                                                .description("Value for default Detailed Strategic Indicators view representation: Radar, Stacked or Polar"),
+                                                                parameterWithName("dqf_view")
+                                                                                .description("Value for default Detailed Factors view representation: Radar, Stacked or Polar"),
+                                                                parameterWithName("m_view")
+                                                                                .description("Value for default Metrics view representation: Gauge or Slider"),
+                                                                parameterWithName("qm_view")
+                                                                                .description("Value for default Quality Model view representation: Graph or Sunburst"),
+                                                                parameterWithName("projects_info")
+                                                                                .description("Array of JSON object { prj: project identifier, all_si: are all strategic indicators shown? , si: list of selected strategic indicators }"))));
+
+                // Verify mock interactions
+                verify(profilesController, times(1)).checkNewProfileByName(profileName);
+                verify(profilesController, times(1)).newProfile(profileName, profileDescription, qualityLevel, dsiView,
+                                dqfView, mView, qmView, projectsInfoMap);
+
+                verifyNoMoreInteractions(profilesController);
+        }
+
+        @Test
+        public void newProductNameAlreadyExists() throws Exception {
+                Long projectId = 1L;
+                String projectExternalId = "test";
+                String projectName = "Test";
+                String projectDescription = "Test project";
+                boolean active = true;
+                String projectBacklogId = "999";
+                // PROJECT DTO
+                Map<DataSource, DTOProjectIdentity> dtoProjectIdentities = new HashMap<>();
+                for (DataSource source : DataSource.values()) {
+                        dtoProjectIdentities.put(source, new DTOProjectIdentity(source, "test"));
+                }
+                DTOProject dtoProject = new DTOProject(projectId, projectExternalId, projectName, projectDescription,
+                                null,
+                                active, projectBacklogId, false, dtoProjectIdentities, false, null);
+
+                List<DTOProject> dtoProjectList = new ArrayList<>();
+                dtoProjectList.add(dtoProject);
+
+                String profileName = "Test";
+                String profileDescription = "Test profile";
+                Profile.QualityLevel qualityLevel = Profile.QualityLevel.valueOf("ALL");
+                Profile.DetailedViews dsiView = Profile.DetailedViews.valueOf("Radar");
+                Profile.DetailedViews dqfView = Profile.DetailedViews.valueOf("Radar");
+                Profile.MetricsView mView = Profile.MetricsView.valueOf("Gauge");
+                Profile.QualityModelView qmView = Profile.QualityModelView.valueOf("Graph");
+
+                Pair<Long, Boolean> pair = Pair.of(projectId, true);
+                List<Pair<Long, Boolean>> allSIs = new ArrayList<>();
+                allSIs.add(pair);
+
+                String projects_info;
+                JSONArray array = new JSONArray();
+                JSONObject item = new JSONObject();
+                item.put("prj", projectId);
+                item.put("all_si", true);
+                item.put("si", new ArrayList<>());
+                array.add(item);
+                projects_info = array.toString();
+
+                when(profilesController.checkNewProfileByName(profileName)).thenReturn(false);
+
+                // Perform request
+                RequestBuilder requestBuilder = MockMvcRequestBuilders
+                                .multipart("/api/profiles")
+                                .param("name", profileName)
+                                .param("description", profileDescription)
+                                .param("quality_level", qualityLevel.toString())
+                                .param("dsi_view", dsiView.toString())
+                                .param("dqf_view", dqfView.toString())
+                                .param("m_view", mView.toString())
+                                .param("qm_view", qmView.toString())
+                                .param("projects_info", projects_info);
+
+                this.mockMvc.perform(requestBuilder)
+                                .andExpect(status().isConflict())
+                                .andDo(document("profiles/add-error",
+                                                preprocessRequest(prettyPrint()),
+                                                preprocessResponse(prettyPrint())));
+
+                // Verify mock interactions
+                verify(profilesController, times(1)).checkNewProfileByName(profileName);
+                verifyNoMoreInteractions(profilesController);
+        }
+
+        @Test
+        public void deleteProduct() throws Exception {
+                Long profileId = 1L;
+
+                // Perform request
+                RequestBuilder requestBuilder = RestDocumentationRequestBuilders
+                                .delete("/api/profiles/{id}", profileId);
+
+                this.mockMvc.perform(requestBuilder)
+                                .andExpect(status().isOk())
+                                .andDo(document("profiles/delete",
+                                                preprocessRequest(prettyPrint()),
+                                                preprocessResponse(prettyPrint()),
+                                                pathParameters(
+                                                                parameterWithName("id")
+                                                                                .description("Profile identifier"))));
+
+                // Verify mock interactions
+                verify(profilesController, times(1)).deleteProfile(profileId);
+                verifyNoMoreInteractions(profilesController);
+        }
 
 }

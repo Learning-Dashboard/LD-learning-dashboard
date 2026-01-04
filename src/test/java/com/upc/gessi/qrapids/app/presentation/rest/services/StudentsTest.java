@@ -182,7 +182,9 @@ public class StudentsTest {
                                 fieldWithPath("[].metrics[].forecastingError")
                                         .description("Description of forecasting errors"),
                                 fieldWithPath("[].metrics[].qualityFactors")
-                                        .description("List of the quality factors that use this metric")
+                                        .description("List of the quality factors that use this metric"),
+                                fieldWithPath("[].metrics[].scope")
+                                        .description("Scope of the metric")
                         )
                 ));
 
@@ -327,7 +329,9 @@ public class StudentsTest {
                                 fieldWithPath("[].metrics[].forecastingError")
                                         .description("Description of forecasting errors"),
                                 fieldWithPath("[].metrics[].qualityFactors")
-                                        .description("List of the quality factors that use this metric")
+                                        .description("List of the quality factors that use this metric"),
+                                fieldWithPath("[].metrics[].scope")
+                                        .description("Scope of the metric")
                         )
                 ));
 

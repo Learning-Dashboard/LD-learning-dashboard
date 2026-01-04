@@ -12,7 +12,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
 
-
 public class DomainObjectsBuilder {
 
     public Project buildProject() {
@@ -23,16 +22,17 @@ public class DomainObjectsBuilder {
         String projectBacklogId = "prj-1";
         Boolean projectIsGlobal = false;
 
-        Project project = new Project(projectExternalId, projectName, projectDescription, null, true,projectIsGlobal);
+        Project project = new Project(projectExternalId, projectName, projectDescription, null, true, projectIsGlobal,
+                null);
         project.setId(projectId);
         project.setBacklogId(projectBacklogId);
         return project;
     }
 
-    public List<ProjectIdentity> buildProjectIdentities(Project project){
+    public List<ProjectIdentity> buildProjectIdentities(Project project) {
         List<ProjectIdentity> projectIdentities = new ArrayList<>();
 
-        for(DataSource source: DataSource.values()){
+        for (DataSource source : DataSource.values()) {
             projectIdentities.add(new ProjectIdentity(source, "testurl", project));
         }
         return projectIdentities;
@@ -45,31 +45,32 @@ public class DomainObjectsBuilder {
         AlertType alertType = AlertType.TRESPASSED_THRESHOLD;
         float value = 0.4f;
         float threshold = 0.5f;
-        Alert alert = new Alert(value,threshold,alertType, project, affectedId,affectedType,null,null);
+        Alert alert = new Alert(value, threshold, alertType, project, affectedId, affectedType, null, null);
         alert.setId(alertId);
         return alert;
     }
 
-    public Metric buildMetric(Project project){
+    public Metric buildMetric(Project project) {
         long metricId = 1L;
         String externalId = "duplication";
         String name = "Duplication";
         String description = "Percentage of files lying within a defined range of duplication density";
         String category = "Duplication category";
         float threshold = 0.5f;
-        Metric metric = new Metric(externalId, name, description, project,category);
+        Metric metric = new Metric(externalId, name, description, project, category, null);
         metric.setThreshold(threshold);
         metric.setId(metricId);
         return metric;
     }
 
     // build Strategic Indicator without weights
-    public Strategic_Indicator buildStrategicIndicator (Project project) {
+    public Strategic_Indicator buildStrategicIndicator(Project project) {
         Long strategicIndicatorId = 1L;
         String strategicIndicatorName = "Product Quality";
         String strategicIndicatorDescription = "Quality of the product built";
 
-        Strategic_Indicator strategicIndicator = new Strategic_Indicator(strategicIndicatorName, strategicIndicatorDescription, null, project);
+        Strategic_Indicator strategicIndicator = new Strategic_Indicator(strategicIndicatorName,
+                strategicIndicatorDescription, null, project);
         strategicIndicator.setId(strategicIndicatorId);
         strategicIndicator.setThreshold(0.5f);
 
@@ -77,9 +78,10 @@ public class DomainObjectsBuilder {
 
         // define factor1 with its metric composition
         List<QualityFactorMetrics> qualityMetrics1 = new ArrayList<>();
-        Metric metric1 = new Metric("duplication","Duplication", "Density of non-duplicated code",project,"Duplication category");
+        Metric metric1 = new Metric("duplication", "Duplication", "Density of non-duplicated code", project,
+                "Duplication category", null);
         metric1.setId(1L);
-        Factor factor1 =  new Factor("codequality", "Quality of the implemented code", project, "type", "Default");
+        Factor factor1 = new Factor("codequality", "Quality of the implemented code", project, "type", "Default");
         factor1.setId(1L);
         QualityFactorMetrics qfm1 = new QualityFactorMetrics(-1f, metric1, factor1);
         qfm1.setId(1L);
@@ -94,9 +96,11 @@ public class DomainObjectsBuilder {
 
         // define factor2 with its metric composition
         List<QualityFactorMetrics> qualityMetrics2 = new ArrayList<>();
-        Metric metric2 = new Metric("bugdensity","Bugdensity", "Density of files without bugs", project,"Bugdensity category");
+        Metric metric2 = new Metric("bugdensity", "Bugdensity", "Density of files without bugs", project,
+                "Bugdensity category", null);
         metric2.setId(2L);
-        Factor factor2 =  new Factor("softwarestability", "Stability of the software under development", project, "testType", "Default");
+        Factor factor2 = new Factor("softwarestability", "Stability of the software under development", project,
+                "testType", "Default");
         factor2.setId(2L);
         QualityFactorMetrics qfm2 = new QualityFactorMetrics(-1f, metric2, factor2);
         qfm2.setId(2L);
@@ -105,15 +109,16 @@ public class DomainObjectsBuilder {
         factor2.setWeighted(false);
         // define si with factor2 union
         Long siqf2Id = 2L;
-        StrategicIndicatorQualityFactors siqf2 = new StrategicIndicatorQualityFactors( factor2, -1, strategicIndicator);
+        StrategicIndicatorQualityFactors siqf2 = new StrategicIndicatorQualityFactors(factor2, -1, strategicIndicator);
         siqf2.setId(siqf2Id);
         qualityFactors.add(siqf2);
 
         // define factor3 with its metric composition
         List<QualityFactorMetrics> qualityMetrics3 = new ArrayList<>();
-        Metric metric3 = new Metric("fasttests","Fast Tests", "Percentage of tests under the testing duration threshold",project, "Fast Tests category");
+        Metric metric3 = new Metric("fasttests", "Fast Tests",
+                "Percentage of tests under the testing duration threshold", project, "Fast Tests category", null);
         metric3.setId(3L);
-        Factor factor3 =  new Factor("testingstatus", "Performance of testing phases", project, "testType", "Default");
+        Factor factor3 = new Factor("testingstatus", "Performance of testing phases", project, "testType", "Default");
         factor3.setId(3L);
         QualityFactorMetrics qfm3 = new QualityFactorMetrics(-1f, metric3, factor3);
         qfm3.setId(3L);
@@ -122,7 +127,7 @@ public class DomainObjectsBuilder {
         factor3.setWeighted(false);
         // define si with factor3 union
         Long siqf3Id = 3L;
-        StrategicIndicatorQualityFactors siqf3 = new StrategicIndicatorQualityFactors( factor3, -1, strategicIndicator);
+        StrategicIndicatorQualityFactors siqf3 = new StrategicIndicatorQualityFactors(factor3, -1, strategicIndicator);
         siqf3.setId(siqf3Id);
         qualityFactors.add(siqf3);
 
@@ -133,21 +138,23 @@ public class DomainObjectsBuilder {
         return strategicIndicator;
     }
 
-    public Strategic_Indicator buildStrategicIndicatorForSimulation (Project project) {
+    public Strategic_Indicator buildStrategicIndicatorForSimulation(Project project) {
         Long strategicIndicatorId = 1L;
         String strategicIndicatorName = "Product Quality";
         String strategicIndicatorDescription = "Quality of the product built";
 
-        Strategic_Indicator strategicIndicator = new Strategic_Indicator(strategicIndicatorName, strategicIndicatorDescription, null, project);
+        Strategic_Indicator strategicIndicator = new Strategic_Indicator(strategicIndicatorName,
+                strategicIndicatorDescription, null, project);
         strategicIndicator.setId(strategicIndicatorId);
 
         List<StrategicIndicatorQualityFactors> qualityFactors = new ArrayList<>();
 
         // define factor1 with its metric composition
         List<QualityFactorMetrics> qualityMetrics1 = new ArrayList<>();
-        Metric metric1 = new Metric("duplication","Duplication", "Density of non-duplicated code",project, "Duplication category");
+        Metric metric1 = new Metric("duplication", "Duplication", "Density of non-duplicated code", project,
+                "Duplication category", null);
         metric1.setId(1L);
-        Factor factor1 =  new Factor("testingperformance", "Performance of the tests", project, "testType", "Default");
+        Factor factor1 = new Factor("testingperformance", "Performance of the tests", project, "testType", "Default");
         factor1.setId(1L);
         QualityFactorMetrics qfm1 = new QualityFactorMetrics(-1f, metric1, factor1);
         qfm1.setId(1L);
@@ -160,7 +167,6 @@ public class DomainObjectsBuilder {
         siqf1.setId(siqf1Id);
         qualityFactors.add(siqf1);
 
-
         // finish define si with its factors composition
         strategicIndicator.setStrategicIndicatorQualityFactorsList(qualityFactors);
         strategicIndicator.setWeighted(false);
@@ -169,27 +175,30 @@ public class DomainObjectsBuilder {
     }
 
     // build Factor without weights
-    public Factor buildFactor (Project project) {
+    public Factor buildFactor(Project project) {
         // define factor with its metric composition
         List<QualityFactorMetrics> qualityMetrics = new ArrayList<>();
 
-        Factor factor =  new Factor("codequality", "Quality of the implemented code", project, "testType", "Default");
+        Factor factor = new Factor("codequality", "Quality of the implemented code", project, "testType", "Default");
         factor.setId(1L);
         factor.setCategoryName("Codequality category");
         factor.setThreshold(0.3f);
-        Metric metric1 = new Metric("duplication","Duplication", "Density of non-duplicated code",project,"Duplication category");
+        Metric metric1 = new Metric("duplication", "Duplication", "Density of non-duplicated code", project,
+                "Duplication category", null);
         metric1.setId(1L);
         metric1.setThreshold(null);
         QualityFactorMetrics qfm1 = new QualityFactorMetrics(-1f, metric1, factor);
         qfm1.setId(1L);
         qualityMetrics.add(qfm1);
-        Metric metric2 = new Metric("bugdensity","Bugdensity", "Density of files without bugs", project, "Bugdensity category");
+        Metric metric2 = new Metric("bugdensity", "Bugdensity", "Density of files without bugs", project,
+                "Bugdensity category", null);
         metric2.setId(2L);
         metric2.setThreshold(null);
         QualityFactorMetrics qfm2 = new QualityFactorMetrics(-1f, metric2, factor);
         qfm1.setId(2L);
         qualityMetrics.add(qfm2);
-        Metric metric3 = new Metric("fasttests","Fast Tests", "Percentage of tests under the testing duration threshold",project, "Fast Test category");
+        Metric metric3 = new Metric("fasttests", "Fast Tests",
+                "Percentage of tests under the testing duration threshold", project, "Fast Test category", null);
         metric3.setId(3L);
         metric3.setThreshold(null);
         QualityFactorMetrics qfm3 = new QualityFactorMetrics(-1f, metric3, factor);
@@ -201,13 +210,15 @@ public class DomainObjectsBuilder {
         return factor;
     }
 
-    public Strategic_Indicator addFactorToStrategicIndicator (Strategic_Indicator si, Factor factor, float weight) {
+    public Strategic_Indicator addFactorToStrategicIndicator(Strategic_Indicator si, Factor factor, float weight) {
         List<StrategicIndicatorQualityFactors> qualityFactors = new ArrayList<>();
 
         List<QualityFactorMetrics> qualityMetrics1 = new ArrayList<>();
-        Metric metric1 = new Metric("duplication","Duplication", "Density of non-duplicated code", si.getProject(), "Duplication category");
+        Metric metric1 = new Metric("duplication", "Duplication", "Density of non-duplicated code", si.getProject(),
+                "Duplication category", null);
         metric1.setId(1L);
-        Factor factor1 =  new Factor("codequality", "Quality of the implemented code", si.getProject(), "testType", "Default");
+        Factor factor1 = new Factor("codequality", "Quality of the implemented code", si.getProject(), "testType",
+                "Default");
         factor1.setId(1L);
         QualityFactorMetrics qfm1 = new QualityFactorMetrics(-1f, metric1, factor1);
         qfm1.setId(1L);
@@ -220,11 +231,12 @@ public class DomainObjectsBuilder {
         siqf1.setId(siqf1Id);
         qualityFactors.add(siqf1);
 
-
         List<QualityFactorMetrics> qualityMetrics2 = new ArrayList<>();
-        Metric metric2 = new Metric("bugdensity","Bugdensity", "Density of files without bugs", si.getProject(), "Bugdensity category");
+        Metric metric2 = new Metric("bugdensity", "Bugdensity", "Density of files without bugs", si.getProject(),
+                "Bugdensity category", null);
         metric2.setId(2L);
-        Factor factor2 =  new Factor("softwarestability", "Stability of the software under development", si.getProject(), "testType", "Default");
+        Factor factor2 = new Factor("softwarestability", "Stability of the software under development", si.getProject(),
+                "testType", "Default");
         factor2.setId(2L);
         QualityFactorMetrics qfm2 = new QualityFactorMetrics(-1f, metric2, factor2);
         qfm2.setId(2L);
@@ -233,15 +245,17 @@ public class DomainObjectsBuilder {
         factor2.setWeighted(false);
 
         Long siqf2Id = 2L;
-        StrategicIndicatorQualityFactors siqf2 = new StrategicIndicatorQualityFactors( factor2, -1, si);
+        StrategicIndicatorQualityFactors siqf2 = new StrategicIndicatorQualityFactors(factor2, -1, si);
         siqf2.setId(siqf2Id);
         qualityFactors.add(siqf2);
 
-
         List<QualityFactorMetrics> qualityMetrics3 = new ArrayList<>();
-        Metric metric3 = new Metric("fasttests","Fast Tests", "Percentage of tests under the testing duration threshold", si.getProject(), "Fast Test category");
+        Metric metric3 = new Metric("fasttests", "Fast Tests",
+                "Percentage of tests under the testing duration threshold", si.getProject(), "Fast Test category",
+                null);
         metric3.setId(3L);
-        Factor factor3 =  new Factor("testingstatus", "Performance of testing phases", si.getProject(), "testType", "Default");
+        Factor factor3 = new Factor("testingstatus", "Performance of testing phases", si.getProject(), "testType",
+                "Default");
         factor3.setId(3L);
         QualityFactorMetrics qfm3 = new QualityFactorMetrics(-1f, metric3, factor3);
         qfm3.setId(3L);
@@ -254,8 +268,6 @@ public class DomainObjectsBuilder {
         siqf3.setId(siqf3Id);
         qualityFactors.add(siqf3);
 
-
-
         Long siqf4Id = 4L;
         StrategicIndicatorQualityFactors siqf4 = new StrategicIndicatorQualityFactors(factor, weight, si);
         siqf4.setId(siqf4Id);
@@ -265,15 +277,17 @@ public class DomainObjectsBuilder {
         return si;
     }
 
-    public List<StrategicIndicatorQualityFactors> buildQualityFactors (Strategic_Indicator strategicIndicator) {
+    public List<StrategicIndicatorQualityFactors> buildQualityFactors(Strategic_Indicator strategicIndicator) {
 
         List<StrategicIndicatorQualityFactors> qualityFactors = new ArrayList<>();
 
         // define factor1 with its metric composition
         List<QualityFactorMetrics> qualityMetrics1 = new ArrayList<>();
-        Metric metric1 = new Metric("duplication","Duplication", "Density of non-duplicated code", strategicIndicator.getProject(), "Duplication category");
+        Metric metric1 = new Metric("duplication", "Duplication", "Density of non-duplicated code",
+                strategicIndicator.getProject(), "Duplication category", null);
         metric1.setId(1L);
-        Factor factor1 =  new Factor("codequality", "Quality of the implemented code", strategicIndicator.getProject(), "testType", "Default");
+        Factor factor1 = new Factor("codequality", "Quality of the implemented code", strategicIndicator.getProject(),
+                "testType", "Default");
         factor1.setId(1L);
         QualityFactorMetrics qfm1 = new QualityFactorMetrics(-1f, metric1, factor1);
         qfm1.setId(1L);
@@ -288,9 +302,11 @@ public class DomainObjectsBuilder {
 
         // define factor2 with its metric composition
         List<QualityFactorMetrics> qualityMetrics2 = new ArrayList<>();
-        Metric metric2 = new Metric("bugdensity","Bugdensity", "Density of files without bugs", strategicIndicator.getProject(), "Bugdensity category");
+        Metric metric2 = new Metric("bugdensity", "Bugdensity", "Density of files without bugs",
+                strategicIndicator.getProject(), "Bugdensity category", null);
         metric2.setId(2L);
-        Factor factor2 =  new Factor("softwarestability", "Stability of the software under development", strategicIndicator.getProject(), "testType", "Default");
+        Factor factor2 = new Factor("softwarestability", "Stability of the software under development",
+                strategicIndicator.getProject(), "testType", "Default");
         factor2.setId(2L);
         QualityFactorMetrics qfm2 = new QualityFactorMetrics(-1f, metric2, factor2);
         qfm2.setId(2L);
@@ -299,15 +315,18 @@ public class DomainObjectsBuilder {
         factor2.setWeighted(false);
         // define si with factor2 union
         Long siqf2Id = 2L;
-        StrategicIndicatorQualityFactors siqf2 = new StrategicIndicatorQualityFactors( factor2, -1, strategicIndicator);
+        StrategicIndicatorQualityFactors siqf2 = new StrategicIndicatorQualityFactors(factor2, -1, strategicIndicator);
         siqf2.setId(siqf2Id);
         qualityFactors.add(siqf2);
 
         // define factor3 with its metric composition
         List<QualityFactorMetrics> qualityMetrics3 = new ArrayList<>();
-        Metric metric3 = new Metric("fasttests","Fast Tests", "Percentage of tests under the testing duration threshold", strategicIndicator.getProject(), "Fast Test category");
+        Metric metric3 = new Metric("fasttests", "Fast Tests",
+                "Percentage of tests under the testing duration threshold", strategicIndicator.getProject(),
+                "Fast Test category", null);
         metric3.setId(3L);
-        Factor factor3 =  new Factor("testingstatus", "Performance of testing phases", strategicIndicator.getProject(), "testType", "Default");
+        Factor factor3 = new Factor("testingstatus", "Performance of testing phases", strategicIndicator.getProject(),
+                "testType", "Default");
         factor3.setId(3L);
         QualityFactorMetrics qfm3 = new QualityFactorMetrics(-1f, metric3, factor3);
         qfm3.setId(3L);
@@ -316,14 +335,15 @@ public class DomainObjectsBuilder {
         factor3.setWeighted(false);
         // define si with factor3 union
         Long siqf3Id = 3L;
-        StrategicIndicatorQualityFactors siqf3 = new StrategicIndicatorQualityFactors( factor3, -1, strategicIndicator);
+        StrategicIndicatorQualityFactors siqf3 = new StrategicIndicatorQualityFactors(factor3, -1, strategicIndicator);
         siqf3.setId(siqf3Id);
         qualityFactors.add(siqf3);
 
         return qualityFactors;
     }
 
-    public DTOStrategicIndicatorEvaluation buildDtoStrategicIndicatorEvaluation (Strategic_Indicator strategicIndicator) {
+    public DTOStrategicIndicatorEvaluation buildDtoStrategicIndicatorEvaluation(
+            Strategic_Indicator strategicIndicator) {
         List<DTOAssessment> dtoSIAssessmentList = new ArrayList<>();
 
         Long assessment1Id = 10L;
@@ -331,7 +351,8 @@ public class DomainObjectsBuilder {
         Float assessment1Value = null;
         String assessment1Color = "#00ff00";
         Float assessment1UpperThreshold = 0.66f;
-        DTOAssessment dtoSIAssessment1 = new DTOAssessment(assessment1Id, assessment1Label, assessment1Value, assessment1Color, assessment1UpperThreshold);
+        DTOAssessment dtoSIAssessment1 = new DTOAssessment(assessment1Id, assessment1Label, assessment1Value,
+                assessment1Color, assessment1UpperThreshold);
         dtoSIAssessmentList.add(dtoSIAssessment1);
 
         Long assessment2Id = 11L;
@@ -339,7 +360,8 @@ public class DomainObjectsBuilder {
         Float assessment2Value = null;
         String assessment2Color = "#ff8000";
         Float assessment2UpperThreshold = 0.33f;
-        DTOAssessment dtoSIAssessment2 = new DTOAssessment(assessment2Id, assessment2Label, assessment2Value, assessment2Color, assessment2UpperThreshold);
+        DTOAssessment dtoSIAssessment2 = new DTOAssessment(assessment2Id, assessment2Label, assessment2Value,
+                assessment2Color, assessment2UpperThreshold);
         dtoSIAssessmentList.add(dtoSIAssessment2);
 
         Long assessment3Id = 11L;
@@ -347,7 +369,8 @@ public class DomainObjectsBuilder {
         Float assessment3Value = null;
         String assessment3Color = "#ff0000";
         Float assessment3UpperThreshold = 0f;
-        DTOAssessment dtoSIAssessment3 = new DTOAssessment(assessment3Id, assessment3Label, assessment3Value, assessment3Color, assessment3UpperThreshold);
+        DTOAssessment dtoSIAssessment3 = new DTOAssessment(assessment3Id, assessment3Label, assessment3Value,
+                assessment3Color, assessment3UpperThreshold);
         dtoSIAssessmentList.add(dtoSIAssessment3);
 
         Float strategicIndicatorValue = 0.7f;
@@ -356,14 +379,17 @@ public class DomainObjectsBuilder {
         String datasource = "Q-Rapdis Dashboard";
         String categoriesDescription = "[Good (0,67), Neutral (0,33), Bad (0,00)]";
         String strategicIndicatorRationale = "factors: {...}, formula: ..., value: ..., category: ...";
-        DTOStrategicIndicatorEvaluation dtoStrategicIndicatorEvaluation = new DTOStrategicIndicatorEvaluation(strategicIndicator.getExternalId(), strategicIndicator.getName(), strategicIndicator.getDescription(), strategicIndicatorValuePair, strategicIndicatorRationale, dtoSIAssessmentList, LocalDate.now(), datasource, strategicIndicator.getId(), categoriesDescription, false);
+        DTOStrategicIndicatorEvaluation dtoStrategicIndicatorEvaluation = new DTOStrategicIndicatorEvaluation(
+                strategicIndicator.getExternalId(), strategicIndicator.getName(), strategicIndicator.getDescription(),
+                strategicIndicatorValuePair, strategicIndicatorRationale, dtoSIAssessmentList, LocalDate.now(),
+                datasource, strategicIndicator.getId(), categoriesDescription, false);
         dtoStrategicIndicatorEvaluation.setHasFeedback(false);
         dtoStrategicIndicatorEvaluation.setForecastingError(null);
 
         return dtoStrategicIndicatorEvaluation;
     }
 
-    public DTODetailedFactorEvaluation buildDTOQualityFactor () {
+    public DTODetailedFactorEvaluation buildDTOQualityFactor() {
         String factorId = "testingperformance";
         String factorName = "Testing Performance";
         String factorDescription = "Performance of the tests";
@@ -376,14 +402,17 @@ public class DomainObjectsBuilder {
         String metricRationale = "parameters: {...}, formula: ...";
         List<String> qualityFactors = new ArrayList<>();
         qualityFactors.add(factorId);
-        DTOMetricEvaluation dtoMetricEvaluation = new DTOMetricEvaluation(metricId, metricName, metricDescription, null, metricRationale, qualityFactors, evaluationDate, metricValue);
+        DTOMetricEvaluation dtoMetricEvaluation = new DTOMetricEvaluation(metricId, metricName, metricDescription, null,
+                "system",
+                metricRationale, qualityFactors, evaluationDate, metricValue);
         List<DTOMetricEvaluation> dtoMetricEvaluationList = new ArrayList<>();
         dtoMetricEvaluationList.add(dtoMetricEvaluation);
 
-        return new DTODetailedFactorEvaluation(factorId, factorDescription, factorName, dtoMetricEvaluationList, "testType");
+        return new DTODetailedFactorEvaluation(factorId, factorDescription, factorName, dtoMetricEvaluationList,
+                "testType");
     }
 
-    public DTODetailedFactorEvaluation buildDTOQualityFactorForPrediction () {
+    public DTODetailedFactorEvaluation buildDTOQualityFactorForPrediction() {
         String factorId = "testingperformance";
         String factorName = "Testing Performance";
         String factorDescription = "Performance of the tests";
@@ -397,7 +426,8 @@ public class DomainObjectsBuilder {
         String metricRationale = "Forecast";
         List<String> qualityFactors = new ArrayList<>();
         qualityFactors.add(factorId);
-        DTOMetricEvaluation dtoMetricEvaluation = new DTOMetricEvaluation(metricId, metricName, metricDescription, metricDataSource, metricRationale, qualityFactors, evaluationDate, metricValue.floatValue());
+        DTOMetricEvaluation dtoMetricEvaluation = new DTOMetricEvaluation(metricId, metricName, metricDescription,
+                metricDataSource, "system", metricRationale, qualityFactors, evaluationDate, metricValue.floatValue());
         Double first80 = 0.97473043;
         Double second80 = 0.9745246;
         Pair<Float, Float> confidence80 = Pair.of(first80.floatValue(), second80.floatValue());
@@ -409,10 +439,11 @@ public class DomainObjectsBuilder {
         List<DTOMetricEvaluation> dtoMetricEvaluationList = new ArrayList<>();
         dtoMetricEvaluationList.add(dtoMetricEvaluation);
 
-        return new DTODetailedFactorEvaluation(factorId,factorDescription, factorName, dtoMetricEvaluationList, "testType");
+        return new DTODetailedFactorEvaluation(factorId, factorDescription, factorName, dtoMetricEvaluationList,
+                "testType");
     }
 
-    public DTOFactorEvaluation buildDTOFactor () {
+    public DTOFactorEvaluation buildDTOFactor() {
         String factorId = "testingperformance";
         String factorName = "Testing Performance";
         String factorDescription = "Performance of the tests";
@@ -422,10 +453,11 @@ public class DomainObjectsBuilder {
         String strategicIndicator = "processperformance";
         List<String> strategicIndicatorsList = new ArrayList<>();
         strategicIndicatorsList.add(strategicIndicator);
-        return new DTOFactorEvaluation(factorId, factorName, factorDescription, Pair.of(factorValue,"Good"), evaluationDate, null, factorRationale, strategicIndicatorsList);
+        return new DTOFactorEvaluation(factorId, factorName, factorDescription, Pair.of(factorValue, "Good"),
+                evaluationDate, null, factorRationale, strategicIndicatorsList);
     }
 
-    public DTOMetricEvaluation buildDTOMetric () {
+    public DTOMetricEvaluation buildDTOMetric() {
         String metricId = "fasttests";
         String metricName = "Fast Tests";
         String metricDescription = "Percentage of tests under the testing duration threshold";
@@ -435,10 +467,12 @@ public class DomainObjectsBuilder {
         String factorId = "testingperformance";
         List<String> qualityFactors = new ArrayList<>();
         qualityFactors.add(factorId);
-        return new DTOMetricEvaluation(metricId, metricName, metricDescription, null, metricRationale, qualityFactors, evaluationDate, metricValue);
+        return new DTOMetricEvaluation(metricId, metricName, metricDescription, null, "system", metricRationale,
+                qualityFactors,
+                evaluationDate, metricValue);
     }
 
-    public DTOStrategicIndicatorEvaluation buildDTOStrategicIndicatorEvaluation () {
+    public DTOStrategicIndicatorEvaluation buildDTOStrategicIndicatorEvaluation() {
         List<DTOAssessment> dtoSIAssessmentList = new ArrayList<>();
 
         Long assessment1Id = 10L;
@@ -446,7 +480,8 @@ public class DomainObjectsBuilder {
         Float assessment1Value = null;
         String assessment1Color = "#00ff00";
         Float assessment1UpperThreshold = 0.66f;
-        DTOAssessment dtoSIAssessment1 = new DTOAssessment(assessment1Id, assessment1Label, assessment1Value, assessment1Color, assessment1UpperThreshold);
+        DTOAssessment dtoSIAssessment1 = new DTOAssessment(assessment1Id, assessment1Label, assessment1Value,
+                assessment1Color, assessment1UpperThreshold);
         dtoSIAssessmentList.add(dtoSIAssessment1);
 
         Long assessment2Id = 11L;
@@ -454,7 +489,8 @@ public class DomainObjectsBuilder {
         Float assessment2Value = null;
         String assessment2Color = "#ff8000";
         Float assessment2UpperThreshold = 0.33f;
-        DTOAssessment dtoSIAssessment2 = new DTOAssessment(assessment2Id, assessment2Label, assessment2Value, assessment2Color, assessment2UpperThreshold);
+        DTOAssessment dtoSIAssessment2 = new DTOAssessment(assessment2Id, assessment2Label, assessment2Value,
+                assessment2Color, assessment2UpperThreshold);
         dtoSIAssessmentList.add(dtoSIAssessment2);
 
         Long assessment3Id = 11L;
@@ -462,7 +498,8 @@ public class DomainObjectsBuilder {
         Float assessment3Value = null;
         String assessment3Color = "#ff0000";
         Float assessment3UpperThreshold = 0f;
-        DTOAssessment dtoSIAssessment3 = new DTOAssessment(assessment3Id, assessment3Label, assessment3Value, assessment3Color, assessment3UpperThreshold);
+        DTOAssessment dtoSIAssessment3 = new DTOAssessment(assessment3Id, assessment3Label, assessment3Value,
+                assessment3Color, assessment3UpperThreshold);
         dtoSIAssessmentList.add(dtoSIAssessment3);
 
         String strategicIndicatorId = "processperformance";
@@ -477,29 +514,35 @@ public class DomainObjectsBuilder {
         String datasource = "Q-Rapdis Dashboard";
         String categoriesDescription = "[Good (0,67), Neutral (0,33), Bad (0,00)]";
         String strategicIndicatorRationale = "factors: {...}, formula: ..., value: ..., category: ...";
-        DTOStrategicIndicatorEvaluation dtoStrategicIndicatorEvaluation = new DTOStrategicIndicatorEvaluation(strategicIndicatorId, strategicIndicatorName, strategicIndicatorDescription, strategicIndicatorValuePair, strategicIndicatorRationale, dtoSIAssessmentList, date, datasource, strategicIndicatorDbId, categoriesDescription, false);
+        DTOStrategicIndicatorEvaluation dtoStrategicIndicatorEvaluation = new DTOStrategicIndicatorEvaluation(
+                strategicIndicatorId, strategicIndicatorName, strategicIndicatorDescription,
+                strategicIndicatorValuePair, strategicIndicatorRationale, dtoSIAssessmentList, date, datasource,
+                strategicIndicatorDbId, categoriesDescription, false);
         dtoStrategicIndicatorEvaluation.setHasFeedback(false);
         dtoStrategicIndicatorEvaluation.setForecastingError(null);
         return dtoStrategicIndicatorEvaluation;
     }
 
-    public List<SICategory> buildSICategoryList () {
+    public List<SICategory> buildSICategoryList() {
         Long strategicIndicatorGoodCategoryId = 10L;
         String strategicIndicatorGoodCategoryName = "Good";
         String strategicIndicatorGoodCategoryColor = "#00ff00";
-        SICategory siGoodCategory = new SICategory(strategicIndicatorGoodCategoryName, strategicIndicatorGoodCategoryColor);
+        SICategory siGoodCategory = new SICategory(strategicIndicatorGoodCategoryName,
+                strategicIndicatorGoodCategoryColor);
         siGoodCategory.setId(strategicIndicatorGoodCategoryId);
 
         Long strategicIndicatorNeutralCategoryId = 11L;
         String strategicIndicatorNeutralCategoryName = "Neutral";
         String strategicIndicatorNeutralCategoryColor = "#ff8000";
-        SICategory siNeutralCategory = new SICategory(strategicIndicatorNeutralCategoryName, strategicIndicatorNeutralCategoryColor);
+        SICategory siNeutralCategory = new SICategory(strategicIndicatorNeutralCategoryName,
+                strategicIndicatorNeutralCategoryColor);
         siNeutralCategory.setId(strategicIndicatorNeutralCategoryId);
 
         Long strategicIndicatorBadCategoryId = 12L;
         String strategicIndicatorBadCategoryName = "Bad";
         String strategicIndicatorBadCategoryColor = "#ff0000";
-        SICategory siBadCategory = new SICategory(strategicIndicatorBadCategoryName, strategicIndicatorBadCategoryColor);
+        SICategory siBadCategory = new SICategory(strategicIndicatorBadCategoryName,
+                strategicIndicatorBadCategoryColor);
         siBadCategory.setId(strategicIndicatorBadCategoryId);
 
         List<SICategory> siCategoryList = new ArrayList<>();
@@ -510,7 +553,7 @@ public class DomainObjectsBuilder {
         return siCategoryList;
     }
 
-    public List<Map<String, String>> buildRawSICategoryList () {
+    public List<Map<String, String>> buildRawSICategoryList() {
         String strategicIndicatorGoodCategoryName = "Good";
         String strategicIndicatorGoodCategoryColor = "#00ff00";
         Map<String, String> strategicIndicatorGoodCategory = new HashMap<>();
@@ -537,13 +580,14 @@ public class DomainObjectsBuilder {
         return strategicIndicatorCategoriesList;
     }
 
-    public List<QFCategory> buildFactorCategoryList () {
+    public List<QFCategory> buildFactorCategoryList() {
         Long factorGoodCategoryId = 10L;
         String factorGoodCategoryName = "Default";
         String factorGoodCategoryType = "Good";
         String factorGoodCategoryColor = "#00ff00";
         float factorGoodCategoryUpperThreshold = 1f;
-        QFCategory factorGoodCategory = new QFCategory(factorGoodCategoryName, factorGoodCategoryColor, factorGoodCategoryUpperThreshold,factorGoodCategoryType);
+        QFCategory factorGoodCategory = new QFCategory(factorGoodCategoryName, "Default", factorGoodCategoryColor,
+                factorGoodCategoryUpperThreshold, factorGoodCategoryType);
         factorGoodCategory.setId(factorGoodCategoryId);
 
         Long factorNeutralCategoryId = 11L;
@@ -551,7 +595,9 @@ public class DomainObjectsBuilder {
         String factorNeutralCategoryType = "Neutral";
         String factorNeutralCategoryColor = "#ff8000";
         float factorNeutralCategoryUpperThreshold = 0.67f;
-        QFCategory factorNeutralCategory = new QFCategory(factorNeutralCategoryName, factorNeutralCategoryColor, factorNeutralCategoryUpperThreshold,factorNeutralCategoryType);
+        QFCategory factorNeutralCategory = new QFCategory(factorNeutralCategoryName, "Default",
+                factorNeutralCategoryColor,
+                factorNeutralCategoryUpperThreshold, factorNeutralCategoryType);
         factorNeutralCategory.setId(factorNeutralCategoryId);
 
         Long factorBadCategoryId = 12L;
@@ -559,19 +605,20 @@ public class DomainObjectsBuilder {
         String factorBadCategoryType = "Bad";
         String factorBadCategoryColor = "#ff0000";
         float factorBadCategoryUpperThreshold = 0.33f;
-        QFCategory factorBadCategory = new QFCategory(factorBadCategoryName, factorBadCategoryColor, factorBadCategoryUpperThreshold,factorBadCategoryType);
+        QFCategory factorBadCategory = new QFCategory(factorBadCategoryName, "Default", factorBadCategoryColor,
+                factorBadCategoryUpperThreshold, factorBadCategoryType);
         factorBadCategory.setId(factorBadCategoryId);
 
-
-        QFCategory factorHighCategory6mc = new QFCategory("6 members contribution", "#ff0000", 1.0f,"High");
+        QFCategory factorHighCategory6mc = new QFCategory("6 members contribution", "Default", "#ff0000", 1.0f, "High");
         factorHighCategory6mc.setId(13L);
-        QFCategory factorUpCategory6mc = new QFCategory("6 members contribution", "#ff0000", 0.8f,"Up");
+        QFCategory factorUpCategory6mc = new QFCategory("6 members contribution", "Default", "#ff0000", 0.8f, "Up");
         factorUpCategory6mc.setId(14L);
-        QFCategory factorGoodEnoughCategory6mc = new QFCategory("6 members contribution", "#ff0000", 0.5f,"Good enough");
+        QFCategory factorGoodEnoughCategory6mc = new QFCategory("6 members contribution", "Default", "#ff0000", 0.5f,
+                "Good enough");
         factorGoodEnoughCategory6mc.setId(15L);
-        QFCategory factorDownCategory6mc = new QFCategory("6 members contribution", "#ff0000", 0.3f,"Down");
+        QFCategory factorDownCategory6mc = new QFCategory("6 members contribution", "Default", "#ff0000", 0.3f, "Down");
         factorDownCategory6mc.setId(16L);
-        QFCategory factorLowCategory6mc = new QFCategory("6 members contribution", "#ff0000", 0.15f,"Low");
+        QFCategory factorLowCategory6mc = new QFCategory("6 members contribution", "Default", "#ff0000", 0.15f, "Low");
         factorLowCategory6mc.setId(17L);
 
         List<QFCategory> factorCategoryList = new ArrayList<>();
@@ -588,7 +635,7 @@ public class DomainObjectsBuilder {
         return factorCategoryList;
     }
 
-    public List<Map<String,String>> buildRawFactorCategoryList () {
+    public List<Map<String, String>> buildRawFactorCategoryList() {
         String factorGoodCategoryType = "Good";
         String factorGoodCategoryColor = "#00ff00";
         float factorGoodCategoryUpperThreshold = 1.0f;
@@ -621,13 +668,15 @@ public class DomainObjectsBuilder {
         return factorCategoriesList;
     }
 
-    public List<MetricCategory> buildMetricCategoryList () {
+    public List<MetricCategory> buildMetricCategoryList() {
         Long metricGoodCategoryId = 10L;
         String metricGoodCategoryName = "Default";
         String metricGoodCategoryType = "Good";
         String metricGoodCategoryColor = "#00ff00";
         float metricGoodCategoryUpperThreshold = 1f;
-        MetricCategory metricGoodCategory = new MetricCategory(metricGoodCategoryName, metricGoodCategoryColor, metricGoodCategoryUpperThreshold,metricGoodCategoryType);
+        MetricCategory metricGoodCategory = new MetricCategory(metricGoodCategoryName, "Default",
+                metricGoodCategoryColor,
+                metricGoodCategoryUpperThreshold, metricGoodCategoryType);
         metricGoodCategory.setId(metricGoodCategoryId);
 
         Long metricNeutralCategoryId = 11L;
@@ -635,7 +684,9 @@ public class DomainObjectsBuilder {
         String metricNeutralCategoryName = "Default";
         String metricNeutralCategoryColor = "#ff8000";
         float metricNeutralCategoryUpperThreshold = 0.67f;
-        MetricCategory metricNeutralCategory = new MetricCategory(metricNeutralCategoryName, metricNeutralCategoryColor, metricNeutralCategoryUpperThreshold,metricNeutralCategoryType);
+        MetricCategory metricNeutralCategory = new MetricCategory(metricNeutralCategoryName, "Default",
+                metricNeutralCategoryColor,
+                metricNeutralCategoryUpperThreshold, metricNeutralCategoryType);
         metricNeutralCategory.setId(metricNeutralCategoryId);
 
         Long metricBadCategoryId = 12L;
@@ -643,7 +694,8 @@ public class DomainObjectsBuilder {
         String metricBadCategoryName = "Default";
         String metricBadCategoryColor = "#ff0000";
         float metricBadCategoryUpperThreshold = 0.33f;
-        MetricCategory metricBadCategory = new MetricCategory(metricBadCategoryName, metricBadCategoryColor, metricBadCategoryUpperThreshold,metricBadCategoryType);
+        MetricCategory metricBadCategory = new MetricCategory(metricBadCategoryName, "Default", metricBadCategoryColor,
+                metricBadCategoryUpperThreshold, metricBadCategoryType);
         metricBadCategory.setId(metricBadCategoryId);
 
         List<MetricCategory> metricCategoryList = new ArrayList<>();
@@ -654,7 +706,7 @@ public class DomainObjectsBuilder {
         return metricCategoryList;
     }
 
-    public List<Map<String, String>> buildRawMetricCategoryList () {
+    public List<Map<String, String>> buildRawMetricCategoryList() {
         String metricGoodCategoryType = "Good";
         String metricGoodCategoryColor = "#00ff00";
         float metricGoodCategoryUpperThreshold = 1.0f;
@@ -687,7 +739,7 @@ public class DomainObjectsBuilder {
         return metricCategoriesList;
     }
 
-    public List<DTOAssessment> buildDTOSIAssessmentList () {
+    public List<DTOAssessment> buildDTOSIAssessmentList() {
         List<DTOAssessment> dtoSIAssessmentList = new ArrayList<>();
 
         Long assessment1Id = 10L;
@@ -695,7 +747,8 @@ public class DomainObjectsBuilder {
         Float assessment1Value = 0.5f;
         String assessment1Color = "#00ff00";
         Float assessment1UpperThreshold = 0.66f;
-        DTOAssessment dtoSIAssessment1 = new DTOAssessment(assessment1Id, assessment1Label, assessment1Value, assessment1Color, assessment1UpperThreshold);
+        DTOAssessment dtoSIAssessment1 = new DTOAssessment(assessment1Id, assessment1Label, assessment1Value,
+                assessment1Color, assessment1UpperThreshold);
         dtoSIAssessmentList.add(dtoSIAssessment1);
 
         Long assessment2Id = 11L;
@@ -703,7 +756,8 @@ public class DomainObjectsBuilder {
         Float assessment2Value = 0.3f;
         String assessment2Color = "#ff8000";
         Float assessment2UpperThreshold = 0.33f;
-        DTOAssessment dtoSIAssessment2 = new DTOAssessment(assessment2Id, assessment2Label, assessment2Value, assessment2Color, assessment2UpperThreshold);
+        DTOAssessment dtoSIAssessment2 = new DTOAssessment(assessment2Id, assessment2Label, assessment2Value,
+                assessment2Color, assessment2UpperThreshold);
         dtoSIAssessmentList.add(dtoSIAssessment2);
 
         Long assessment3Id = 11L;
@@ -711,13 +765,14 @@ public class DomainObjectsBuilder {
         Float assessment3Value = 0.2f;
         String assessment3Color = "#ff0000";
         Float assessment3UpperThreshold = 0f;
-        DTOAssessment dtoSIAssessment3 = new DTOAssessment(assessment3Id, assessment3Label, assessment3Value, assessment3Color, assessment3UpperThreshold);
+        DTOAssessment dtoSIAssessment3 = new DTOAssessment(assessment3Id, assessment3Label, assessment3Value,
+                assessment3Color, assessment3UpperThreshold);
         dtoSIAssessmentList.add(dtoSIAssessment3);
 
         return dtoSIAssessmentList;
     }
 
-    public List<DTORelationsSI> buildDTORelationsSI () {
+    public List<DTORelationsSI> buildDTORelationsSI() {
         String metricId = "nonblockingfiles";
         String metricValue = "0.8";
         String metricWeight = "1";
@@ -752,7 +807,7 @@ public class DomainObjectsBuilder {
         return dtoRelationsSIList;
     }
 
-    public List<DTOMilestone> buildDTOMilestoneList () {
+    public List<DTOMilestone> buildDTOMilestoneList() {
         LocalDate date = LocalDate.now();
         date = date.plusDays(3);
         String milestoneName = "Version 1.3";
@@ -763,7 +818,7 @@ public class DomainObjectsBuilder {
         return milestoneList;
     }
 
-    public List<DTOPhase> buildDTOPhaseList () {
+    public List<DTOPhase> buildDTOPhaseList() {
         LocalDate dateFrom = LocalDate.now().minusDays(15);
         LocalDate dateTo = LocalDate.now().plusDays(15);
         String phaseName = "Development";
@@ -781,7 +836,8 @@ public class DomainObjectsBuilder {
         Float assessment1Value = null;
         String assessment1Color = "#00ff00";
         Float assessment1UpperThreshold = 0.66f;
-        DTOAssessment dtoSIAssessment1 = new DTOAssessment(assessment1Id, assessment1Label, assessment1Value, assessment1Color, assessment1UpperThreshold);
+        DTOAssessment dtoSIAssessment1 = new DTOAssessment(assessment1Id, assessment1Label, assessment1Value,
+                assessment1Color, assessment1UpperThreshold);
         dtoSIAssessmentList.add(dtoSIAssessment1);
 
         Long assessment2Id = 11L;
@@ -789,7 +845,8 @@ public class DomainObjectsBuilder {
         Float assessment2Value = null;
         String assessment2Color = "#ff8000";
         Float assessment2UpperThreshold = 0.33f;
-        DTOAssessment dtoSIAssessment2 = new DTOAssessment(assessment2Id, assessment2Label, assessment2Value, assessment2Color, assessment2UpperThreshold);
+        DTOAssessment dtoSIAssessment2 = new DTOAssessment(assessment2Id, assessment2Label, assessment2Value,
+                assessment2Color, assessment2UpperThreshold);
         dtoSIAssessmentList.add(dtoSIAssessment2);
 
         Long assessment3Id = 11L;
@@ -797,7 +854,8 @@ public class DomainObjectsBuilder {
         Float assessment3Value = null;
         String assessment3Color = "#ff0000";
         Float assessment3UpperThreshold = 0f;
-        DTOAssessment dtoSIAssessment3 = new DTOAssessment(assessment3Id, assessment3Label, assessment3Value, assessment3Color, assessment3UpperThreshold);
+        DTOAssessment dtoSIAssessment3 = new DTOAssessment(assessment3Id, assessment3Label, assessment3Value,
+                assessment3Color, assessment3UpperThreshold);
         dtoSIAssessmentList.add(dtoSIAssessment3);
 
         String strategicIndicatorId = "processperformance";
@@ -810,8 +868,10 @@ public class DomainObjectsBuilder {
         String dateString = "2019-07-07";
         LocalDate date = LocalDate.parse(dateString);
         String strategicIndicatorRationale = "factors: {...}, formula: ..., value: ..., category: ...";
-        DTOSICurrentHistoricEvaluation dtoSICurrentHistoricEvaluationEvaluation = new DTOSICurrentHistoricEvaluation(strategicIndicatorId,"Test", strategicIndicatorName, strategicIndicatorDescription, strategicIndicatorValuePair, strategicIndicatorDbId, strategicIndicatorRationale, dtoSIAssessmentList, date);
-
+        DTOSICurrentHistoricEvaluation dtoSICurrentHistoricEvaluationEvaluation = new DTOSICurrentHistoricEvaluation(
+                strategicIndicatorId, "Test", strategicIndicatorName, strategicIndicatorDescription,
+                strategicIndicatorValuePair, strategicIndicatorDbId, strategicIndicatorRationale, dtoSIAssessmentList,
+                date);
 
         return dtoSICurrentHistoricEvaluationEvaluation;
 
@@ -824,19 +884,22 @@ public class DomainObjectsBuilder {
         String dateString = "2019-07-07";
         LocalDate date = LocalDate.parse(dateString);
         String strategicIndicatorRationale = "factors: {...}, formula: ..., value: ..., category: ...";
-        DTOSICurrentHistoricEvaluation.DTOHistoricalData dtoHistoricalData = new DTOSICurrentHistoricEvaluation.DTOHistoricalData(strategicIndicatorValuePair,strategicIndicatorRationale,date);
+        DTOSICurrentHistoricEvaluation.DTOHistoricalData dtoHistoricalData = new DTOSICurrentHistoricEvaluation.DTOHistoricalData(
+                strategicIndicatorValuePair, strategicIndicatorRationale, date);
         return dtoHistoricalData;
     }
 
-    public DTOIteration buildIteration(){
+    public DTOIteration buildIteration() {
         Long id = 1L;
         String name = "test iteration";
         String label = "test label";
         LocalDate localFromDate = LocalDate.of(2022, Calendar.JUNE, 25);
         LocalDate localToDate = LocalDate.of(2022, Calendar.JULY, 22);
 
-        java.sql.Date from_date = new java.sql.Date(Date.from(localFromDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).getTime());
-        java.sql.Date to_date = new java.sql.Date(Date.from(localToDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).getTime());
+        java.sql.Date from_date = new java.sql.Date(
+                Date.from(localFromDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).getTime());
+        java.sql.Date to_date = new java.sql.Date(
+                Date.from(localToDate.atStartOfDay(ZoneId.systemDefault()).toInstant()).getTime());
         List<Long> project_ids = new ArrayList<>();
         project_ids.add(2L);
         project_ids.add(4L);
