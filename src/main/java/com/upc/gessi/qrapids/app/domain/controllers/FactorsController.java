@@ -973,9 +973,6 @@ public class FactorsController {
         Float distance = 1.1f; // distancia demasiado grande, para que se recalcule
         String type = "No Category";
         for (QFCategory qfCategory : qfCategoryList) {
-            System.out.println(qfCategory.getType() + " " + qfCategory.getName() + " " + qfCategory.getUpperThreshold()
-                    + " " + distance);
-            System.out.println(qfCategory.getUpperThreshold() - val_metric);
             if (val_metric <= qfCategory.getUpperThreshold() && // si la metrica puede ser de ese thresh
                     distance > (qfCategory.getUpperThreshold() - val_metric) // y la distancia hasta ahora es MAYOR a la
                                                                              // nueva

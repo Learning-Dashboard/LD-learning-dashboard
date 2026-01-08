@@ -88,7 +88,6 @@ public class Metrics {
                                         @RequestParam(value = "patternGroup", required = false) String patternGroup) {
         //if(categories.size()<3) throw new BadRequestException(Messages.NOT_ENOUGH_CATEGORIES);
         //else 
-        System.out.println("New metrics categories: " + categories.toString() + " name: " + name + " patternGroup: " + patternGroup);
         metricsController.newMetricCategories(categories, name, patternGroup);
     }
 

@@ -151,7 +151,6 @@ public class QMAMetrics {
     }
 
     private static DTOMetricEvaluation MetricEvaluationDTOToDTOMetric(MetricEvaluationDTO metric, EvaluationDTO evaluation) {
-        System.out.println("Processing metric in MetricEvaluationDTOToDTOMetric: " + metric.getName() + " with scope " + metric.getScope() + " with id " + metric.getID());
         return new DTOMetricEvaluation(metric.getID(),
                 metric.getName(),
                 metric.getDescription(),

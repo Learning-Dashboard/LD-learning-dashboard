@@ -80,8 +80,6 @@ public class Factors {
                                     @RequestParam(value = "patternGroup", required = false) String patternGroup) {
         //if(categories.size()<3)
           //  throw new BadRequestException(Messages.NOT_ENOUGH_CATEGORIES);
-
-        System.out.println("New factors categories: " + categories.toString() + " name: " + name + " patternGroup: " + patternGroup);
         factorsController.newFactorCategories(categories, name, patternGroup);
     }
 
