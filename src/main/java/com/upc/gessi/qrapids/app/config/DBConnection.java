@@ -12,7 +12,7 @@ import java.sql.SQLException;
  * Class that encapsulates the database connection information
  */
 @Configuration
-@PropertySource(value="classpath:application.properties", encoding="UTF-8")
+@PropertySource(value="classpath:application.properties", encoding="UTF-8", ignoreResourceNotFound=true)
 public class DBConnection {
 
     @Value("${spring.datasource.url}")
