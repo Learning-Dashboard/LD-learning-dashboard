@@ -4,7 +4,7 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "project")
-public class Project {	
+public class Project {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -25,19 +25,24 @@ public class Project {
     private Boolean isGlobal;
     @Column(name = "anonymized")
     private boolean anonymized;
+    @Column(name = "subject")
+    private String subject;
 
-    public Project(){}
-    
-    public Project(String externalId, String name, String description, byte[] logo, boolean active, Boolean isGlobal) {
-    	this.externalId = externalId;
-    	this.name = name;
-    	this.description = description;
-    	this.logo = logo;
-    	this.active = active;
-        this.isGlobal=isGlobal;
-        this.anonymized = false;
+    public Project() {
     }
-    
+
+    public Project(String externalId, String name, String description, byte[] logo, boolean active, Boolean isGlobal,
+            String subject) {
+        this.externalId = externalId;
+        this.name = name;
+        this.description = description;
+        this.logo = logo;
+        this.active = active;
+        this.isGlobal = isGlobal;
+        this.anonymized = false;
+        this.subject = subject;
+    }
+
     public Long getId() {
         return id;
     }
@@ -77,7 +82,7 @@ public class Project {
     public void setLogo(byte[] logo) {
         this.logo = logo;
     }
-    
+
     public boolean getActive() {
         return active;
     }
@@ -94,9 +99,13 @@ public class Project {
         this.backlogId = backlogId;
     }
 
-    public Boolean getIsGlobal() { return isGlobal;}
+    public Boolean getIsGlobal() {
+        return isGlobal;
+    }
 
-    public void setIsGlobal(Boolean global) { isGlobal = global;}
+    public void setIsGlobal(Boolean global) {
+        isGlobal = global;
+    }
 
     public boolean isAnonymized() {
         return anonymized;
@@ -104,5 +113,13 @@ public class Project {
 
     public void setAnonymized(boolean anonymized) {
         this.anonymized = anonymized;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
     }
 }

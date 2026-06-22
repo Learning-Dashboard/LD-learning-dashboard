@@ -28,18 +28,16 @@ public class ProjectIdentityRepositoryTest {
     public void findAllByProject() {
         // Given
 
-
         String externalId = "test";
         String name = "test";
         String description = "test";
         String url = "test";
-        Project project = new Project(externalId, name, description, null, true, true);
+        Project project = new Project(externalId, name, description, null, true, true, null);
         ProjectIdentity projectIdentity = new ProjectIdentity(DataSource.GITHUB, url, project);
 
         List<ProjectIdentity> projectIdentities = Collections.singletonList(projectIdentity);
         entityManager.persistAndFlush(project);
         entityManager.persistAndFlush(projectIdentity);
-
 
         // When
         List<ProjectIdentity> projectIdentitiesFound = projectIdentityRepository.findAllByProject(project);

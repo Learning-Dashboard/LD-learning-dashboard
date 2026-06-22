@@ -1,6 +1,5 @@
 package com.upc.gessi.qrapids.app.presentation.rest.dto;
 
-
 import com.upc.gessi.qrapids.app.domain.models.DataSource;
 
 import java.util.List;
@@ -16,25 +15,30 @@ public class DTOProject {
     private String backlogId;
     private Boolean isGlobal;
     private boolean anonymized;
+    private String subject;
 
     private Map<DataSource, DTOProjectIdentity> identities;
     private List<DTOStudent> students;
-    
-    public DTOProject(){}
-    
-    public DTOProject(Long id, String externalId, String name, String description, byte[] logo, boolean active, String backlogId, Boolean isGlobal, Map<DataSource, DTOProjectIdentity> identities, boolean anonymized) {
-    	this.id = id;
-    	this.externalId = externalId;
-    	this.name = name;
-    	this.description = description;
-    	this.logo = logo;
-    	this.active = active;
-    	this.backlogId = backlogId;
-    	this.isGlobal=isGlobal;
+
+    public DTOProject() {
+    }
+
+    public DTOProject(Long id, String externalId, String name, String description, byte[] logo, boolean active,
+            String backlogId, Boolean isGlobal, Map<DataSource, DTOProjectIdentity> identities, boolean anonymized,
+            String subject) {
+        this.id = id;
+        this.externalId = externalId;
+        this.name = name;
+        this.description = description;
+        this.logo = logo;
+        this.active = active;
+        this.backlogId = backlogId;
+        this.isGlobal = isGlobal;
         this.identities = identities;
         this.anonymized = anonymized;
+        this.subject = subject;
     }
-    
+
     public Long getId() {
         return id;
     }
@@ -74,7 +78,7 @@ public class DTOProject {
     public void setLogo(byte[] logo) {
         this.logo = logo;
     }
-    
+
     public boolean getActive() {
         return active;
     }
@@ -91,13 +95,21 @@ public class DTOProject {
         this.backlogId = backlogId;
     }
 
-    public Boolean getIsGlobal() { return isGlobal;}
+    public Boolean getIsGlobal() {
+        return isGlobal;
+    }
 
-    public void setIsGlobal(Boolean global) { isGlobal = global;}
+    public void setIsGlobal(Boolean global) {
+        isGlobal = global;
+    }
 
-    public List<DTOStudent> getStudents() { return students; }
+    public List<DTOStudent> getStudents() {
+        return students;
+    }
 
-    public void setStudents(List<DTOStudent> students) {this.students=students;}
+    public void setStudents(List<DTOStudent> students) {
+        this.students = students;
+    }
 
     public Map<DataSource, DTOProjectIdentity> getIdentities() {
         return identities;
@@ -113,5 +125,13 @@ public class DTOProject {
 
     public void setAnonymized(boolean anonymized) {
         this.anonymized = anonymized;
+    }
+
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
     }
 }

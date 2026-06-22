@@ -3,6 +3,7 @@ package com.upc.gessi.qrapids.app.presentation.rest.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.upc.gessi.qrapids.app.domain.models.DataSource;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
 
 import java.util.Map;
 
@@ -21,6 +22,8 @@ public class DTOUpdateProject {
     Map<DataSource, String> identities;
 
     Boolean global;
+
+    private List<DTOStudent> students;
 
     public DTOUpdateProject(String externalId, String name, String description, String backlogId, Map<DataSource, String> identities, Boolean global) {
         this.externalId = externalId;
@@ -80,5 +83,13 @@ public class DTOUpdateProject {
 
     public void setGlobal(Boolean global) {
         this.global = global;
+    }
+
+    public List<DTOStudent> getStudents() {
+        return students;
+    }
+    
+    public void setStudents(List<DTOStudent> students) {
+        this.students = students;
     }
 }

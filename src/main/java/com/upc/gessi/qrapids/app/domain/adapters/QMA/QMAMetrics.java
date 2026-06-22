@@ -155,6 +155,7 @@ public class QMAMetrics {
                 metric.getName(),
                 metric.getDescription(),
                 evaluation.getDatasource(),
+                metric.getScope(),
                 evaluation.getRationale(),
                 metric.getFactors(),
                 evaluation.getEvaluationDate(),

@@ -22,14 +22,19 @@ public class MetricCategory {
     @Column(name = "name")
     private String name;
 
+    @Column(name = "patternGroup")
+    private String patternGroup;
+
     public MetricCategory() {
     }
 
-    public MetricCategory(String name, String color, float upperThreshold, String type) {
+    public MetricCategory(String name,  String patternGroup, String color, float upperThreshold, String type) {
         this.type=type;
         this.name = name;
+        this.patternGroup = patternGroup;
         this.color = color;
         this.upperThreshold = upperThreshold;
+        
     }
 
     public Long getId() {
@@ -46,6 +51,14 @@ public class MetricCategory {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPatternGroup() {
+        return patternGroup;
+    }
+
+    public void setPatternGroup(String patternGroup) {
+        this.patternGroup = patternGroup;
     }
 
     public String getType() {

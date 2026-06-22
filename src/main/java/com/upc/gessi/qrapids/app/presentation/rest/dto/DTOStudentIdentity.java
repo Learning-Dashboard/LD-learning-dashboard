@@ -1,11 +1,13 @@
 package com.upc.gessi.qrapids.app.presentation.rest.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.upc.gessi.qrapids.app.domain.models.DataSource;
 
 public class DTOStudentIdentity {
 
     @JsonProperty("data_source")
+    @JsonAlias("dataSource")
     private DataSource dataSource;
     private String username;
     private DTOStudent student;

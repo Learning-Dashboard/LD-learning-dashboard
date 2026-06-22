@@ -5,4 +5,5 @@ import org.springframework.data.repository.CrudRepository;
 
 public interface SICategoryRepository extends CrudRepository<SICategory, Long> {
     SICategory findByName (String name);
+    boolean existsByName (String name);
 }

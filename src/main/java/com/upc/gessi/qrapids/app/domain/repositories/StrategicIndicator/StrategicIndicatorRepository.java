@@ -12,4 +12,5 @@ public interface StrategicIndicatorRepository extends CrudRepository<Strategic_I
     Strategic_Indicator findByNameAndProject_Id (String name, Long projectId);
     boolean existsByExternalIdAndProject_Id (String externalId, Long projectId);
     Strategic_Indicator findByExternalIdAndProjectId(String externalId, Long projectId);
+    void deleteAllByProjectId(Long projectId);
 }

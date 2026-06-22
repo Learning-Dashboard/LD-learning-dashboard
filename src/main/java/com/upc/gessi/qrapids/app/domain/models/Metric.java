@@ -25,6 +25,8 @@ public class Metric {
     private String webUrl;
     @Column(name = "category_name", columnDefinition = "varchar default 'Default'")
     private String categoryName;
+    @Column(name = "scope")
+    private String scope;
 
     @ManyToOne
     @JoinColumn(name="projectId", referencedColumnName = "id")
@@ -36,11 +38,12 @@ public class Metric {
 
     public Metric(){}
 
-    public Metric(String externalId, String name, String description, Project project, String categoryName) {
+    public Metric(String externalId, String name, String description, Project project, String categoryName, String scope) {
         this.externalId = externalId;
         this.name = name;
         this.description = description;
         this.categoryName = categoryName;
+        this.scope = scope;
         setProject(project);
     }
 
@@ -106,6 +109,14 @@ public class Metric {
 
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
+    }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
     }
 
     public Student getStudent() {return this.student;}

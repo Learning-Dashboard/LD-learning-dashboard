@@ -18,4 +18,6 @@ public interface MetricRepository extends CrudRepository<Metric, Long> {
     List<Metric> findAllByStudentId(Long id);
 
     List<Metric> findAllByStudentIdOrderByName(Long id);
+
+    void deleteAllByProjectId(Long projectId);
 }

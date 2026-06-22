@@ -250,17 +250,17 @@ public class StrategicIndicatorsController {
     }
 
     public void newStrategicIndicatorCategories (List<Map<String, String>> categories) throws CategoriesException {
-        if (categories.size() > 1) {
-            strategicIndicatorCategoryRepository.deleteAll();
-            for (Map<String, String> c : categories) {
-                SICategory sic = new SICategory();
-                sic.setName(c.get("name"));
-                sic.setColor(c.get("color"));
-                strategicIndicatorCategoryRepository.save(sic);
-            }
-        } else {
-            throw new CategoriesException(Messages.NOT_ENOUGH_CATEGORIES);
+        //if (categories.size() > 1) {
+        strategicIndicatorCategoryRepository.deleteAll();
+        for (Map<String, String> c : categories) {
+            SICategory sic = new SICategory();
+            sic.setName(c.get("name"));
+            sic.setColor(c.get("color"));
+            strategicIndicatorCategoryRepository.save(sic);
         }
+        //} else {
+        //    throw new CategoriesException(Messages.NOT_ENOUGH_CATEGORIES);
+        //}
     }
 
     public List<DTOStrategicIndicatorEvaluation> getAllStrategicIndicatorsCurrentEvaluation (String projectExternalId, String profileId) throws IOException, CategoriesException, MongoException, ProjectNotFoundException {

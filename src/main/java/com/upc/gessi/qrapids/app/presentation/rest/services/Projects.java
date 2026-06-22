@@ -7,6 +7,7 @@ import com.upc.gessi.qrapids.app.domain.exceptions.ElementAlreadyPresentExceptio
 import com.upc.gessi.qrapids.app.domain.exceptions.ProjectAlreadyAnonymizedException;
 import com.upc.gessi.qrapids.app.domain.models.DataSource;
 import com.upc.gessi.qrapids.app.domain.models.Project;
+import com.upc.gessi.qrapids.app.domain.models.Student;
 import com.upc.gessi.qrapids.app.domain.utils.AnonymizationModes;
 import com.upc.gessi.qrapids.app.presentation.rest.dto.*;
 import com.upc.gessi.qrapids.app.domain.exceptions.CategoriesException;
@@ -24,7 +25,6 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
-
 
 @RestController
 public class Projects {
@@ -58,7 +58,8 @@ public class Projects {
     @ResponseStatus(HttpStatus.OK)
     public List<DTOProject> getProjects(@RequestParam(value = "profile_id", required = false) String profileId) {
         Long id = null;
-        if (profileId != null) id = Long.valueOf(profileId);
+        if (profileId != null)
+            id = Long.valueOf(profileId);
         return projectsController.getProjects(id);
     }
 
@@ -70,44 +71,66 @@ public class Projects {
 
     @PutMapping("/api/projects/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public void updateProject(@PathVariable Long id, @RequestPart("data") @Valid DTOUpdateProject body, @RequestPart(value = "file", required = false) MultipartFile multipartFile) throws IOException {
+    public void updateProject(@PathVariable Long id, @RequestPart("data") @Valid DTOUpdateProject body,
+            @RequestPart(value = "file", required = false) MultipartFile multipartFile) throws IOException {
 
-            DTOProject project = projectsController.getProjectDTOById(id);
+        DTOProject project = projectsController.getProjectDTOById(id);
 
-            byte[] logoBytes = null;
-            if (multipartFile != null) {
-                logoBytes = IOUtils.toByteArray(multipartFile.getInputStream());
+        byte[] logoBytes = null;
+        if (multipartFile != null) {
+            logoBytes = IOUtils.toByteArray(multipartFile.getInputStream());
+        }
+
+        if (logoBytes != null && logoBytes.length < 10) {
+            logoBytes = project.getLogo();
+        }
+
+        if (projectsController.checkProjectByName(id, body.getName())) {
+
+            Map<DataSource, DTOProjectIdentity> parsedIdentities = new HashMap<>();
+            body.getIdentities().forEach((dataSource, identity) -> {
+                parsedIdentities.put(dataSource, new DTOProjectIdentity(dataSource, identity));
+            });
+
+            DTOProject p = new DTOProject(id, body.getExternalId(), body.getName(), body.getDescription(), logoBytes,
+                    true, body.getBacklogId(), body.getGlobal(), parsedIdentities, project.isAnonymized(),
+                    project.getSubject());
+            projectsController.updateProject(p);
+        } else {
+            throw new ElementAlreadyPresentException(
+                    String.format(Messages.PROJECT_NAME_ALREADY_EXISTS, body.getName()));
+        }
+        if (body.getStudents() != null) {
+            for (DTOStudent dtoStudent : body.getStudents()) {
+                Student student = studentsController.getStudentById(dtoStudent.getId());
+                if (student != null) {
+                    studentsController.updateStudent(
+                            student,
+                            dtoStudent.getName(),
+                            dtoStudent.getIdentities(),
+                            Collections.emptyList() // O mètriques si s’escau
+                    );
+                }
             }
-
-            if (logoBytes != null && logoBytes.length < 10) {
-                logoBytes = project.getLogo();
-            }
-
-            if (projectsController.checkProjectByName(id, body.getName())) {
-
-                Map<DataSource, DTOProjectIdentity> parsedIdentities = new HashMap<>();
-                body.getIdentities().forEach((dataSource, identity) -> {
-                    parsedIdentities.put(dataSource, new DTOProjectIdentity(dataSource, identity));
-                });
-
-                DTOProject p = new DTOProject(id, body.getExternalId(), body.getName(), body.getDescription(), logoBytes, true, body.getBacklogId(), body.getGlobal(), parsedIdentities, project.isAnonymized());
-                projectsController.updateProject(p);
-            } else {
-                throw new ElementAlreadyPresentException(String.format(Messages.PROJECT_NAME_ALREADY_EXISTS, body.getName()));
-            }
+        }
     }
 
     @PostMapping("api/projects/{projectId}/anonymize")
     @ResponseStatus(HttpStatus.OK)
-    public DTOProject anonymizeProject(@PathVariable Long projectId, @RequestBody(required = false) DTOAnonymizeProjectRequest body) {
+    public DTOProject anonymizeProject(@PathVariable Long projectId,
+            @RequestBody(required = false) DTOAnonymizeProjectRequest body) {
 
         AnonymizationModes mode;
-        if (body == null) mode = AnonymizationModes.COUNTRIES;
-        else mode = body.getAnonymizationMode();
-        if (mode == null) mode = AnonymizationModes.COUNTRIES;
+        if (body == null)
+            mode = AnonymizationModes.COUNTRIES;
+        else
+            mode = body.getAnonymizationMode();
+        if (mode == null)
+            mode = AnonymizationModes.COUNTRIES;
 
         Project project = projectsController.getProjectById(projectId);
-        if(project.isAnonymized()) throw new ProjectAlreadyAnonymizedException(projectId.toString());
+        if (project.isAnonymized())
+            throw new ProjectAlreadyAnonymizedException(projectId.toString());
 
         return projectsController.anonymizeProject(project, mode);
 
@@ -123,12 +146,13 @@ public class Projects {
         if (body == null) {
             mode = AnonymizationModes.COUNTRIES;
             projectIds = new ArrayList<>();
-        }
-        else {
+        } else {
             mode = body.getAnonymizationMode();
-            if (mode == null) mode = AnonymizationModes.COUNTRIES;
+            if (mode == null)
+                mode = AnonymizationModes.COUNTRIES;
             projectIds = body.getProjectIds();
-            if (projectIds == null) projectIds = new ArrayList<>();
+            if (projectIds == null)
+                projectIds = new ArrayList<>();
         }
 
         return projectsController.anonymizeProjects(projectIds, mode);
@@ -136,13 +160,14 @@ public class Projects {
 
     @GetMapping("api/project/{project_id}/iterations")
     @ResponseStatus(HttpStatus.OK)
-    public List<DTOIteration> getHistoricChartDates (@PathVariable Long project_id) {
+    public List<DTOIteration> getHistoricChartDates(@PathVariable Long project_id) {
         return iterationsController.getIterationsByProjectId(project_id);
     }
 
     @GetMapping("api/milestones")
     @ResponseStatus(HttpStatus.OK)
-    public List<DTOMilestone> getMilestones (@RequestParam("prj") String prj, @RequestParam(value = "date", required = false) String date) {
+    public List<DTOMilestone> getMilestones(@RequestParam("prj") String prj,
+            @RequestParam(value = "date", required = false) String date) {
 
         LocalDate localDate = null;
 
@@ -155,7 +180,8 @@ public class Projects {
 
     @GetMapping("api/phases")
     @ResponseStatus(HttpStatus.OK)
-    public List<DTOPhase> getPhases (@RequestParam("prj") String prj, @RequestParam(value = "date", required = false) String date) {
+    public List<DTOPhase> getPhases(@RequestParam("prj") String prj,
+            @RequestParam(value = "date", required = false) String date) {
         LocalDate localDate = null;
         if (date != null) {
             localDate = LocalDate.parse(date);
@@ -165,7 +191,34 @@ public class Projects {
     }
 
     @GetMapping("api/projects/identities")
-    public List<DataSource> getIdentities(){
+    public List<DataSource> getIdentities() {
         return Arrays.asList(DataSource.values());
     }
+
+    ///////////////////////////////////////////////////////// NEW CODE
+    ///////////////////////////////////////////////////////// /////////////////////////////////////////////////////////
+    @PostMapping("/api/projects")
+    @ResponseStatus(HttpStatus.CREATED)
+    public DTOProject createProject(@RequestBody @Valid DTOProject body) {
+        try {
+            DTOProject newProject = projectsController.createProject(body);
+            return newProject;
+        } catch (ElementAlreadyPresentException e) {
+            logger.error(e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Project already exists");
+        }
+    }
+
+    @PostMapping("/api/projects/{projectId}/students")
+    @ResponseStatus(HttpStatus.CREATED)
+    public DTOStudent createStudent(@PathVariable Long projectId, @RequestBody DTOStudent dto) {
+        return projectsController.createStudentForProject(projectId, dto);
+    }
+
+    @DeleteMapping("/api/projects/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProject(@PathVariable Long id) {
+        projectsController.deleteProject(id);
+    }
+
 }

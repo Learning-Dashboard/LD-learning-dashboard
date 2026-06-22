@@ -46,7 +46,14 @@ public class StudentsController {
     private UsersController usersController;
 
 
-
+    public Student getStudentById(Long id) {
+        Optional<Student> studentSearchResult = studentRepository.findStudentById(id);
+        if(studentSearchResult.isPresent()) {
+            return studentSearchResult.get();
+        }
+        return null;
+    }
+    
     public DTOStudent getDTOStudentFromStudent(Student student){
         List<StudentIdentity> studentIdentities = studentIdentityRepository.findAllByStudent(student);
 

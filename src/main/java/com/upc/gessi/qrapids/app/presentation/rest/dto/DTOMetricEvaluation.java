@@ -21,11 +21,13 @@ public class DTOMetricEvaluation {
     private String value_description;
     private LocalDate date;
     private String datasource;
+    private String scope;
     private String rationale;
     private Pair<Float, Float> confidence80;
     private Pair<Float, Float> confidence95;
     private List<String> quality_factors;
     private String forecastingError;
+    
 
 
     /**
@@ -40,13 +42,14 @@ public class DTOMetricEvaluation {
      * @param rationale The parameter describes textually the rationale behind the value
      * @param qualityFactors The list of factors IDs using this metric evaluation
      */
-    public DTOMetricEvaluation(String id, String name, String description, String datasource, String rationale, List<String> qualityFactors, LocalDate date, float value) {
+    public DTOMetricEvaluation(String id, String name, String description, String datasource, String scope, String rationale, List<String> qualityFactors, LocalDate date, float value) {
         setId(id);
         setName(name);
         setDescription(description);
         setValue(value);
         setDate(date);
         setDatasource(datasource);
+        setScope(scope);
         setRationale(rationale);
         setQualityFactors(qualityFactors);
     }
@@ -60,17 +63,19 @@ public class DTOMetricEvaluation {
      * @param value The parameter defines the value of the metric evaluation
      * @param date The parameter defines the date of the metric evaluation
      * @param datasource The parameter defines the datasource of the metric evaluation
+     * @param scope The scope of the metric evaluation ("team" or "individual")
      * @param rationale The parameter describes textually the rationale behind the value
      * @param confidence80 Upper and lower values respectively for the 80% confidence interval
      * @param confidence95 Upper and lower values respectively for the 95% confidence interval
      */
-    public DTOMetricEvaluation(String id, String name, String description, String datasource, String rationale, LocalDate date, Float value, Pair<Float, Float> confidence80, Pair<Float, Float> confidence95) {
+    public DTOMetricEvaluation(String id, String name, String description, String datasource, String scope, String rationale, LocalDate date, Float value, Pair<Float, Float> confidence80, Pair<Float, Float> confidence95) {
         setId(id);
         setName(name);
         setDescription(description);
         setValue(value);
         setDate(date);
         setDatasource(datasource);
+        setScope(scope);
         setRationale(rationale);
         setConfidence80(confidence80);
         setConfidence95(confidence95);
@@ -195,5 +200,13 @@ public class DTOMetricEvaluation {
 
     public void setForecastingError(String forecastingError) {
         this.forecastingError = forecastingError;
+    }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
     }
 }

@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedHashMap;
 
 @RestController
 public class Metrics {
@@ -75,22 +76,25 @@ public class Metrics {
         Iterable<MetricCategory> metricCategoryList = metricsController.getMetricCategories(name);
         List<DTOMetricCategory> dtoMetricCategoryList = new ArrayList<>();
         for (MetricCategory metricCategory : metricCategoryList) {
-            dtoMetricCategoryList.add(new DTOMetricCategory(metricCategory.getId(), metricCategory.getName(), metricCategory.getColor(), metricCategory.getUpperThreshold(), metricCategory.getType()));
+            dtoMetricCategoryList.add(new DTOMetricCategory(metricCategory.getId(), metricCategory.getName(), metricCategory.getPatternGroup(), metricCategory.getColor(), metricCategory.getUpperThreshold(), metricCategory.getType()));
         }
         return dtoMetricCategoryList;
     }
 
     @PostMapping("/api/metrics/categories")
     @ResponseStatus(HttpStatus.CREATED)
-    public void newMetricsCategories (@RequestBody List<Map<String, String>> categories, @RequestParam(value = "name", required = false) String name) {
-        if(categories.size()<3) throw new BadRequestException(Messages.NOT_ENOUGH_CATEGORIES);
-        else metricsController.newMetricCategories(categories, name);
+    public void newMetricsCategories (@RequestBody List<Map<String, String>> categories, 
+                                        @RequestParam(value = "name", required = false) String name, 
+                                        @RequestParam(value = "patternGroup", required = false) String patternGroup) {
+        //if(categories.size()<3) throw new BadRequestException(Messages.NOT_ENOUGH_CATEGORIES);
+        //else 
+        metricsController.newMetricCategories(categories, name, patternGroup);
     }
 
     @PutMapping("/api/metrics/categories")
     @ResponseStatus(HttpStatus.OK)
-    public void updateMetricsCategories (@RequestBody List<Map<String, String>> categories,@RequestParam(value = "name") String name) {
-        metricsController.updateMetricCategory(categories, name);
+    public void updateMetricsCategories (@RequestBody List<Map<String, String>> categories,@RequestParam(value = "name") String name, @RequestParam(value = "patternGroup") String patternGroup) {
+        metricsController.updateMetricCategory(categories, name, patternGroup);
     }
 
     @DeleteMapping("/api/metrics/categories")
